@@ -12,6 +12,8 @@
 		4A14D1462D2E0A14007D9E20 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 4A14D1452D2E0A14007D9E20 /* GoogleSignIn */; };
 		4A14D1482D2E0A14007D9E20 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 4A14D1472D2E0A14007D9E20 /* GoogleSignInSwift */; };
 		4A5CE4F92D309DF200FD5D8F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 4A5CE4F82D309DF200FD5D8F /* FirebaseFirestore */; };
+		4AFA52822D3CA9BB00735BED /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AFA52812D3CA9BB00735BED /* WidgetKit.framework */; };
+		4AFA52842D3CA9BB00735BED /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AFA52832D3CA9BB00735BED /* SwiftUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +37,9 @@
 		4A14D1002D2CE2F9007D9E20 /* Fire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A14D1112D2CE2FB007D9E20 /* FireTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A14D11B2D2CE2FB007D9E20 /* FireUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4AFA52802D3CA9BB00735BED /* FireWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FireWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4AFA52812D3CA9BB00735BED /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4AFA52832D3CA9BB00735BED /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -95,6 +100,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4AFA527D2D3CA9BB00735BED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4AFA52842D3CA9BB00735BED /* SwiftUI.framework in Frameworks */,
+				4AFA52822D3CA9BB00735BED /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -115,6 +129,7 @@
 				4A14D1002D2CE2F9007D9E20 /* Fire.app */,
 				4A14D1112D2CE2FB007D9E20 /* FireTests.xctest */,
 				4A14D11B2D2CE2FB007D9E20 /* FireUITests.xctest */,
+				4AFA52802D3CA9BB00735BED /* FireWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,6 +137,8 @@
 		4A5CE4F72D309DF200FD5D8F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AFA52812D3CA9BB00735BED /* WidgetKit.framework */,
+				4AFA52832D3CA9BB00735BED /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -202,6 +219,25 @@
 			productReference = 4A14D11B2D2CE2FB007D9E20 /* FireUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		4AFA527F2D3CA9BB00735BED /* FireWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4AFA52972D3CA9BC00735BED /* Build configuration list for PBXNativeTarget "FireWidgetsExtension" */;
+			buildPhases = (
+				4AFA527C2D3CA9BB00735BED /* Sources */,
+				4AFA527D2D3CA9BB00735BED /* Frameworks */,
+				4AFA527E2D3CA9BB00735BED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FireWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = FireWidgetsExtension;
+			productReference = 4AFA52802D3CA9BB00735BED /* FireWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -222,6 +258,9 @@
 					4A14D11A2D2CE2FB007D9E20 = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 4A14D0FF2D2CE2F9007D9E20;
+					};
+					4AFA527F2D3CA9BB00735BED = {
+						CreatedOnToolsVersion = 16.2;
 					};
 				};
 			};
@@ -246,6 +285,7 @@
 				4A14D0FF2D2CE2F9007D9E20 /* Fire */,
 				4A14D1102D2CE2FB007D9E20 /* FireTests */,
 				4A14D11A2D2CE2FB007D9E20 /* FireUITests */,
+				4AFA527F2D3CA9BB00735BED /* FireWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -272,6 +312,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4AFA527E2D3CA9BB00735BED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -290,6 +337,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4A14D1172D2CE2FB007D9E20 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4AFA527C2D3CA9BB00735BED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -440,6 +494,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Fire/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -458,10 +513,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivertran.Fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
@@ -480,6 +536,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Fire/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -498,10 +555,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.olivertran.Fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
@@ -596,6 +654,65 @@
 			};
 			name = Release;
 		};
+		4AFA52952D3CA9BC00735BED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D76FU63926;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FireWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FireWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.olivertran.Fire.FireWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4AFA52962D3CA9BC00735BED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D76FU63926;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FireWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FireWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.olivertran.Fire.FireWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -631,6 +748,15 @@
 			buildConfigurations = (
 				4A14D12C2D2CE2FB007D9E20 /* Debug */,
 				4A14D12D2D2CE2FB007D9E20 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4AFA52972D3CA9BC00735BED /* Build configuration list for PBXNativeTarget "FireWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4AFA52952D3CA9BC00735BED /* Debug */,
+				4AFA52962D3CA9BC00735BED /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

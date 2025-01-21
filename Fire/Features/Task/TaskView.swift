@@ -23,7 +23,6 @@ struct TaskRowView: View {
                         .font(.caption)
                         .foregroundColor(.green)
                 } else if let dueDate = task.dueDate {
-                    // Show due date logic for incomplete tasks
                     let calendar = Calendar.current
                     let today = calendar.startOfDay(for: Date())
                     let taskDate = calendar.startOfDay(for: dueDate)
@@ -174,11 +173,7 @@ struct TaskView: View {
             }
             
             NavigationView {
-                VStack {
-                    Text("Habits")
-                        .font(.headline)
-                }
-                .navigationTitle(Text("Habits"))
+                HabitView()
             }
             .tabItem {
                 Image(systemName: "star")
@@ -187,7 +182,7 @@ struct TaskView: View {
 
             NavigationView {
                 VStack {
-                    profileView
+                    ProfileView()
                 }
                 .navigationTitle("Profile")
             }
@@ -219,31 +214,89 @@ struct TaskView: View {
         .padding([.leading, .bottom, .trailing])
     }
     
-    var profileView: some View {
-        List {
-            if let user = viewModel.user {
-                Text("UserID: \(user.userId)")
-                Text("Email: \(user.email ?? "Not Set")")
-                
-                if let dateCreated = user.dateCreated {
-                    Text("Date Created: \(dateCreated.formatted(date: .abbreviated, time: .omitted))")
+    struct ProfileView: View {
+        @StateObject private var viewModel = ProfileViewModel()
+        @State private var showSignInView = false
+
+        var body: some View {
+            NavigationView {
+                List {
+                    if let user = viewModel.user {
+                        Section("Profile Info") {
+                            Text("UserID: \(user.userId)")
+                            Text("Email: \(user.email ?? "Not Set")")
+                            if let dateCreated = user.dateCreated {
+                                Text("Date Created: \(dateCreated.formatted(date: .abbreviated, time: .omitted))")
+                            }
+                        }
+                    }
+
+                    SettingsView(showSignInView: $showSignInView)
+                }
+                .task {
+                    do {
+                        try await viewModel.loadCurrentUser()
+                    } catch {
+                        print("Failed to load user: \(error)")
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+        }
+    }
+
+    struct SettingsView: View {
+        @StateObject private var viewModel = SettingsViewModel()
+        @Binding var showSignInView: Bool
+
+        var body: some View {
+            Section("Settings") {
+                Button("Log out") {
+                    Task {
+                        do {
+                            try viewModel.signOut()
+                            showSignInView = true
+                        } catch {
+                            print("Log out failed: \(error)")
+                        }
+                    }
+                }
+
+                Button(role: .destructive) {
+                    Task {
+                        do {
+                            try await viewModel.deleteAccount()
+                            showSignInView = true
+                        } catch {
+                            print("Account deletion failed: \(error)")
+                        }
+                    }
+                } label: {
+                    Text("Delete account")
+                }
+
+                if viewModel.authProviders.contains(.email) {
+                    Section("Email") {
+                        Button("Reset Password") {
+                            Task {
+                                do {
+                                    try await viewModel.resetPassword()
+                                    print("Password reset sent successfully")
+                                } catch {
+                                    print("Password reset failed: \(error)")
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            NavigationLink(destination: SettingsView(showSignInView: $showSignInView)) {
-                Image(systemName: "gear")
-                    .font(.system(size: 30))
-                    .foregroundColor(.primary)
-                    .padding(.vertical)
-                Text("Settings")
+            .onAppear {
+                viewModel.loadAuthProviders()
             }
         }
-        .task {
-            try? await viewModel.loadCurrentUser()
-        }
-        .padding(.horizontal)
-        .navigationTitle(Text("Profile"))
     }
-    
+
     
     // MARK: - Task List
     private var taskList: some View {
