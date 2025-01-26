@@ -8,54 +8,85 @@ struct HabitView: View {
     @State private var selectedFrequency: Set<Int> = []
     @State private var errorMessage: String? = nil
     
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
+        return formatter
+    }
+    private func dayOfTheWeek(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: date)
+    }
+    
     var body: some View {
+        
         ZStack(alignment: .bottomTrailing) {
-            Color(.systemGroupedBackground)
-                .edgesIgnoringSafeArea(.all)
-            
             VStack {
-                VStack {
+                HStack {
+                    Text(dayOfTheWeek(for: date))
+                        .font(.headline)
+                        .foregroundColor(.primary)
+        
                     DatePicker(
-                        "Select Date",
+                        "",
                         selection: $date,
                         displayedComponents: .date
                     )
-                    .datePickerStyle(.graphical)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .padding(.vertical)
+                    .background(
+                        Color(UIColor { traitCollection in
+                            traitCollection.userInterfaceStyle == .dark ? .black : .white })
+                            .cornerRadius(10)
+                    )
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                if viewModel.habits.isEmpty {
-                    Spacer()
-                    Text("No habits found. Add one!")
-                        .font(.headline)
+                if viewModel.habits(for: date).isEmpty {
+                    Text("No habits for today!")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                        .padding(.top, 90.0)
+                    Text(date, formatter: dateFormatter)
+                        .font(.caption)
                         .foregroundColor(.gray)
                         .padding()
                     Spacer()
                 } else {
-                    List(viewModel.habits) { habit in
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Button(action: {
-                                    Task {
-                                        try? await viewModel.completeHabit(habit, date)
+                    List {
+                        Section("Habits for \(date, formatter: dateFormatter)") {
+                            ForEach(viewModel.habits(for: date)) { habit in
+                                HStack() {
+                                    Button(action: {
+                                        Task {
+                                            try? await viewModel.completeHabit(habit, date)
+                                        }
+                                    }) {
+                                        Image(systemName: habit.completedDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) ? "checkmark.circle" : "circle")
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 5)
+                                            .font(.system(size: 25))
                                     }
-                                }) {
-                                    Image(systemName: habit.completedDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) ? "checkmark.square" : "square")
-                                        .padding(.vertical)
-                                }
-                                Text(habit.title)
-                                    .font(.headline)
-                                if let description = habit.description {
-                                    Text(description)
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
+                                    .buttonStyle(BorderlessButtonStyle())
+
+                                    VStack(alignment: .leading) {
+                                        Text(habit.title)
+                                            .font(.headline)
+                                            .fontWeight(.medium)
+                                        if let description = habit.description {
+                                            Text(description)
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    .listStyle(InsetGroupedListStyle())
+                    .scrollContentBackground(.hidden)
                     .refreshable {
                         Task {
                             do {
@@ -68,7 +99,6 @@ struct HabitView: View {
 
                 }
             }
-            .padding(.horizontal)
             
             Button(action: { showAddHabitView = true }) {
                 Image(systemName: "plus.circle.fill")
@@ -77,6 +107,7 @@ struct HabitView: View {
                     .shadow(radius: 5)
             }
             .padding()
+            
         }
         .sheet(isPresented: $showAddHabitView) {
             AddHabitView(
@@ -113,6 +144,7 @@ struct HabitView: View {
                 }
             }
         }
+        .navigationTitle("Habits")
     }
 }
 

@@ -1,6 +1,15 @@
 import Foundation
 import FirebaseFirestore
 
+extension HabitViewModel {
+    func habits(for date: Date) -> [Habit] {
+        habits.filter { habit in
+            let weekday = Calendar.current.component(.weekday, from: date) - 1
+            return habit.interval.contains(weekday)
+        }
+    }
+}
+
 struct Habit: Codable, Identifiable {
     let id: String
     let title: String
@@ -130,6 +139,7 @@ final class HabitViewModel: ObservableObject {
             print("Error fetching habits: \(error.localizedDescription)")
             throw error
         }
+    
     }
     
     

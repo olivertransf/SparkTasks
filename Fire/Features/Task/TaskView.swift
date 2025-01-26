@@ -10,12 +10,14 @@ struct TaskRowView: View {
         HStack {
             Button(action: onComplete) {
                 Image(systemName: task.isComplete ? "checkmark.square" : "square")
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .font(.system(size: 25))
             }
             .buttonStyle(BorderlessButtonStyle())
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.title)
-                    .strikethrough(task.isComplete)
                     .fontWeight(task.isComplete ? .light : .regular)
 
                 if task.isComplete, let dateCompleted = task.dateCompleted {
@@ -55,7 +57,7 @@ struct TaskRowView: View {
                         .foregroundColor(.green)
                 }
                 .buttonStyle(BorderlessButtonStyle())
-                .padding()
+                .padding(.trailing)
             }
 
             if let onDelete = onDelete {
@@ -63,7 +65,6 @@ struct TaskRowView: View {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
-                .padding()
                 .buttonStyle(BorderlessButtonStyle())
             }
         }
@@ -137,8 +138,6 @@ struct TaskView: View {
                                 }
                             }
                             .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
                             .cornerRadius(10)
                         }
                         .padding()
@@ -160,6 +159,8 @@ struct TaskView: View {
                 Image(systemName: "checklist")
                 Text("Tasks")
             }
+            .padding()
+
 
             NavigationView {
                 VStack {
@@ -171,6 +172,8 @@ struct TaskView: View {
                 Image(systemName: "checkmark.square")
                 Text("Completed")
             }
+            .padding()
+
             
             NavigationView {
                 HabitView()
@@ -179,6 +182,17 @@ struct TaskView: View {
                 Image(systemName: "star")
                 Text("Habits")
             }
+            .padding()
+            
+            NavigationView {
+                TimerView()
+            }
+            .tabItem {
+                Image(systemName: "timer")
+                Text("Timer")
+            }
+            .padding()
+
 
             NavigationView {
                 VStack {
@@ -189,6 +203,7 @@ struct TaskView: View {
             .tabItem {
                 Label("Profile", systemImage: "person")
             }
+            .padding()
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
@@ -196,13 +211,15 @@ struct TaskView: View {
     // MARK: - Task Input Field
     private var taskInputField: some View {
         HStack {
-            TextField("Enter your task...", text: $taskTitle)
+            TextField("+ Add task to \"Tasks\"...", text: $taskTitle)
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color(UIColor { traitCollection in
+                    traitCollection.userInterfaceStyle == .dark ? .systemGray6 : .white
+                }))
                 .cornerRadius(10)
                 .submitLabel(.done)
                 .onSubmit(addTask)
-
+            
             Button(action: addTask) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 30))
@@ -240,7 +257,6 @@ struct TaskView: View {
                         print("Failed to load user: \(error)")
                     }
                 }
-                .padding(.horizontal)
             }
             .navigationViewStyle(StackNavigationViewStyle())
         }
@@ -262,6 +278,20 @@ struct TaskView: View {
                         }
                     }
                 }
+                
+                if viewModel.authProviders.contains(.email) {
+                    Button("Reset Password") {
+                        Task {
+                            do {
+                                try await viewModel.resetPassword()
+                                print("Password reset sent successfully")
+                            } catch {
+                                print("Password reset failed: \(error)")
+                            }
+                        }
+                    }
+                    
+                }
 
                 Button(role: .destructive) {
                     Task {
@@ -274,21 +304,6 @@ struct TaskView: View {
                     }
                 } label: {
                     Text("Delete account")
-                }
-
-                if viewModel.authProviders.contains(.email) {
-                    Section("Email") {
-                        Button("Reset Password") {
-                            Task {
-                                do {
-                                    try await viewModel.resetPassword()
-                                    print("Password reset sent successfully")
-                                } catch {
-                                    print("Password reset failed: \(error)")
-                                }
-                            }
-                        }
-                    }
                 }
             }
             .onAppear {
@@ -304,6 +319,7 @@ struct TaskView: View {
             List {
                 taskSection(title: "Tasks", tasks: viewModel.tasks)
             }
+            .scrollContentBackground(.hidden)
             .refreshable {
                 do {
                     try await viewModel.fetchTasks()
@@ -312,7 +328,7 @@ struct TaskView: View {
                     print("Failed to refresh tasks: \(error)")
                 }
             }
-            .padding()
+            .listStyle(InsetGroupedListStyle())
         }
     }
     
@@ -330,7 +346,8 @@ struct TaskView: View {
                     print("Failed to refresh tasks: \(error)")
                 }
             }
-            .padding()
+            .scrollContentBackground(.hidden)
+            .listStyle(InsetGroupedListStyle())
         }
     }
 
