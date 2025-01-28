@@ -11,6 +11,7 @@ import GoogleSignInSwift
 
 struct AuthenticationView: View {
     
+    @Environment(\.colorScheme) var colorScheme
     @State private var viewModel = AuthenticationViewModel()
     @Binding var showSignInView: Bool
     
@@ -22,6 +23,11 @@ struct AuthenticationView: View {
             } label: {
                 Text("Sign In With Email")
                     .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
             }
             
             GoogleSignInButton(viewModel: GoogleSignInButtonViewModel(scheme: .dark, style: .wide, state: .normal)) {
@@ -34,6 +40,23 @@ struct AuthenticationView: View {
                     }
                 }
             }
+            .frame(height: 55)
+            
+            Button(action: {
+                Task {
+                    do {
+                        try await viewModel.signInApple()
+                        showSignInView = false
+                    } catch {
+                        print(error)
+                    }
+                }
+            }, label: {
+                SignInWithAppleButtonViewRepresentable(type: .default, style: colorScheme == .dark ? .white : .black)
+                    .allowsHitTesting(false)
+            })
+            .frame(height: 55)
+            
                                
             Spacer()
         }

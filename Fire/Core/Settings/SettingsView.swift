@@ -10,58 +10,56 @@ import SwiftUI
 struct SettingsView: View {
     
     @StateObject private var viewModel = SettingsViewModel()
-    @Binding var showSignInView: Bool
+    @Binding var showSignInview: Bool
     
     var body: some View {
-        List {
+        Section("Settings") {
             Button("Log out") {
                 Task {
                     do {
                         try viewModel.signOut()
-                        showSignInView = true
+                        showSignInview = true
                     } catch {
-                        print(error)
+                        print("Log out failed: \(error)")
                     }
                 }
             }
             
+            if viewModel.authProviders.contains(.email) {
+                Button("Reset Password") {
+                    Task {
+                        do {
+                            try await viewModel.resetPassword()
+                            print("Password reset sent successfully")
+                        } catch {
+                            print("Password reset failed: \(error)")
+                        }
+                    }
+                }
+                
+            }
+
             Button(role: .destructive) {
                 Task {
                     do {
                         try await viewModel.deleteAccount()
-                        showSignInView = true
+                        showSignInview = true
                     } catch {
-                        print(error)
+                        print("Account deletion failed: \(error)")
                     }
                 }
             } label: {
                 Text("Delete account")
             }
-            
-            if viewModel.authProviders.contains(.email) {
-                Section("Email") {
-                    Button("Reset Password") {
-                        Task {
-                            do {
-                                try await viewModel.resetPassword()
-                                print("Password reset sent successfully")
-                            } catch {
-                                print(error)
-                            }
-                        }
-                    }
-                }
-            }
         }
         .onAppear {
             viewModel.loadAuthProviders()
         }
-        .navigationTitle(Text("Settings"))
     }
 }
 
 #Preview {
     NavigationStack {
-        SettingsView(showSignInView: .constant(false))
+        SettingsView(showSignInview: .constant(false))
     }
 }

@@ -18,6 +18,7 @@ final class SettingsViewModel: ObservableObject {
             authProviders = providers
         }
     }
+    
     func signOut() throws {
         try AuthenticationManager.shared.signOut()
     }
@@ -44,6 +45,6 @@ final class SettingsViewModel: ObservableObject {
         try await db.collection("users").document(uid).delete()
         
         // Delete user from Firebase Authentication
-        try await AuthenticationManager.shared.delete()
+        try await AuthenticationManager.shared.deleteAccount()
     }
 }

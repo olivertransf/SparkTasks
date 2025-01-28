@@ -15,9 +15,7 @@ struct RootView: View {
             ZStack {
                 if !showSignInview {
                     NavigationStack {
-                        
                         TaskView(showSignInView: $showSignInview)
-
                     }
                 }
             }
@@ -29,7 +27,7 @@ struct RootView: View {
             .fullScreenCover(isPresented: $showSignInview) {
                 NavigationView {
                     AuthenticationView(showSignInView: $showSignInview)
-    }
+            }
         }
     }
 }

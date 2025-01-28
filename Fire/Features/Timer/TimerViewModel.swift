@@ -8,6 +8,14 @@
 import Foundation
 import FirebaseFirestore
 
+struct TimerEntry: Hashable {
+    let startTime: TimeInterval
+    let endTime: TimeInterval
+    let elapsedTime: TimeInterval
+    let timestamp: Date
+    let description: String
+}
+
 @MainActor
 final class TimerViewModel: ObservableObject {
     @Published private(set) var user: DBUser? = nil
@@ -152,12 +160,4 @@ final class TimerViewModel: ObservableObject {
     var areAllSelected: Bool {
         return selectedTimers.count == previousTimers.count
     }
-}
-
-struct TimerEntry: Hashable {
-    let startTime: TimeInterval
-    let endTime: TimeInterval
-    let elapsedTime: TimeInterval
-    let timestamp: Date
-    let description: String
 }
