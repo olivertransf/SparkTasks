@@ -16,7 +16,20 @@ struct AuthenticationView: View {
     @Binding var showSignInView: Bool
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Text("Welcome Back!")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
+            
+            // Subtitle
+            Text("Sign in with your email and password to continue.")
+                .font(.body)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
             
             NavigationLink {
                 SignInEmailView(showSignInView: $showSignInView)
@@ -24,13 +37,19 @@ struct AuthenticationView: View {
                 Text("Sign In With Email")
                     .font(.headline)
                     .foregroundColor(.white)
-                    .frame(height: 55)
+                    .frame(height: 45)
                     .frame(maxWidth: .infinity)
                     .background(Color.blue)
                     .cornerRadius(10)
             }
             
-            GoogleSignInButton(viewModel: GoogleSignInButtonViewModel(scheme: .dark, style: .wide, state: .normal)) {
+            GoogleSignInButton(
+                viewModel: GoogleSignInButtonViewModel(
+                    scheme: .dark,
+                    style: .wide,
+                    state: .normal
+                )
+            ) {
                 Task {
                     do {
                         try await viewModel.signInGoogle()
@@ -40,7 +59,9 @@ struct AuthenticationView: View {
                     }
                 }
             }
-            .frame(height: 55)
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .cornerRadius(0)
             
             Button(action: {
                 Task {
@@ -52,16 +73,17 @@ struct AuthenticationView: View {
                     }
                 }
             }, label: {
-                SignInWithAppleButtonViewRepresentable(type: .default, style: colorScheme == .dark ? .white : .black)
+                SignInWithAppleButtonViewRepresentable(
+                    type: .default,
+                    style: .white
+                )
                     .allowsHitTesting(false)
             })
-            .frame(height: 55)
+            .frame(height: 45)
             
-                               
             Spacer()
         }
-        .padding()
-        .navigationTitle(Text("Sign In"))
+        .padding(.horizontal, 40)
     }
 }
 

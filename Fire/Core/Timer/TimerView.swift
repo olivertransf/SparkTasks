@@ -101,7 +101,7 @@ struct TimerView: View {
                                 }
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Time Elapsed: \(formatTime(from: timer.elapsedTime))")
+                                Text("Time Elapsed: \(viewModel.formatTime(from: timer.elapsedTime))")
                                     .font(.body)
                                     .monospacedDigit()
 
@@ -109,11 +109,11 @@ struct TimerView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.primary)
 
-                                Text("Start Time: \(formatDate(from: timer.startTime))")
+                                Text("Start Time: \(viewModel.formatDate(from: timer.startTime))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
 
-                                Text("End Time: \(formatDate(from: timer.endTime))")
+                                Text("End Time: \(viewModel.formatDate(from: timer.endTime))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -140,28 +140,6 @@ struct TimerView: View {
                 }
             }
         }
-    }
-
-    // Format Elapsed Time as "MM:SS.mm"
-    private func formatTime(from elapsedTime: TimeInterval) -> String {
-        let minutes = Int(elapsedTime) / 60
-        let seconds = Int(elapsedTime) % 60
-        let milliseconds = Int((elapsedTime - Double(Int(elapsedTime))) * 100)
-        return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
-    }
-
-    // Format Start and End Time as Human-Readable Dates
-    private func formatDate(from timeInterval: TimeInterval) -> String {
-        let date = Date(timeIntervalSince1970: timeInterval)
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
-
-    // Calculate Total Elapsed Time for a Group of Timers
-    private func calculateTotalElapsedTime(for timers: [TimerEntry]) -> TimeInterval {
-        timers.reduce(0) { $0 + $1.elapsedTime }
     }
 }
 

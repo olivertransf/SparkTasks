@@ -160,4 +160,26 @@ final class TimerViewModel: ObservableObject {
     var areAllSelected: Bool {
         return selectedTimers.count == previousTimers.count
     }
+    
+    // Format Elapsed Time as "MM:SS.mm"
+    func formatTime(from elapsedTime: TimeInterval) -> String {
+        let minutes = Int(elapsedTime) / 60
+        let seconds = Int(elapsedTime) % 60
+        let milliseconds = Int((elapsedTime - Double(Int(elapsedTime))) * 100)
+        return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
+    }
+
+    // Format Start and End Time as Human-Readable Dates
+    func formatDate(from timeInterval: TimeInterval) -> String {
+        let date = Date(timeIntervalSince1970: timeInterval)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    // Calculate Total Elapsed Time for a Group of Timers
+    func calculateTotalElapsedTime(for timers: [TimerEntry]) -> TimeInterval {
+        timers.reduce(0) { $0 + $1.elapsedTime }
+    }
 }

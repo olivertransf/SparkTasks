@@ -28,7 +28,7 @@ struct TaskRowView: View {
                     .fontWeight(task.isComplete ? .light : .regular)
 
                 if task.isComplete, let dateCompleted = task.dateCompleted {
-                    Text("Completed on \(dateCompleted, formatter: dateFormatter)")
+                    Text("Completed on \(dateCompleted, formatter: Utilities.dateFormatter)")
                         .font(.caption)
                         .foregroundColor(.green)
                 } else if let dueDate = task.dueDate {
@@ -75,12 +75,5 @@ struct TaskRowView: View {
                 .buttonStyle(BorderlessButtonStyle())
             }
         }
-    }
-
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .none
-        return formatter
     }
 }

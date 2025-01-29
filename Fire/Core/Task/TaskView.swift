@@ -3,135 +3,70 @@ import SwiftUI
 struct TaskView: View {
     @Binding var showSignInView: Bool
     @StateObject private var viewModel = TaskViewModel()
-    @StateObject var profileViewModel = ProfileViewModel()
     @State private var taskTitle: String = ""
     @State private var showDueDatePicker: Bool = false
     @State private var selectedTask: Todo?
     @State private var selectedDate: Date = Date()
 
     var body: some View {
-        TabView {
-            NavigationView {
-                VStack(spacing: 0) {
-                    if viewModel.user != nil {
-                        taskList
-                        taskInputField
-                    } else {
-                        VStack {
-                            Text("User is loading...")
-                                .font(.title)
-                            
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .padding()
+        NavigationView {
+            VStack(spacing: 0) {
+                taskList
+                taskInputField
+            }
+            .sheet(isPresented: $showDueDatePicker) {
+                VStack {
+                    Text("Set Task Due Date")
+                        .font(.headline)
+                        .padding()
+                    DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
+                        .datePickerStyle(GraphicalDatePickerStyle())
+                        .padding()
+                    
+                    HStack {
+                        Button("Cancel") {
+                            showDueDatePicker = false
                         }
-                    }
-                }
-                .sheet(isPresented: $showDueDatePicker) {
-                    VStack {
-                        Text("Set Task Due Date")
-                            .font(.headline)
-                            .padding()
-                        DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
-                            .datePickerStyle(GraphicalDatePickerStyle())
-                            .padding()
+                        .foregroundColor(.red)
+                        .padding()
                         
-                        HStack {
-                            Button("Cancel") {
-                                showDueDatePicker = false
-                            }
-                            .foregroundColor(.red)
-                            .padding()
-                            
-                            Spacer()
-                            
-                            Button("Save") {
-                                guard let task = selectedTask else { return }
-                                Task {
-                                    do {
-                                        try await viewModel.addDueDate(task: task, dueDate: selectedDate)
-                                        selectedTask = nil
-                                        showDueDatePicker = false
-                                        selectedDate = Date()
-                                        try? await viewModel.fetchTasks()
-                                    } catch {
-                                        print("Failed to update due date: \(error)")
-                                    }
+                        Spacer()
+                        
+                        Button("Save") {
+                            guard let task = selectedTask else { return }
+                            Task {
+                                do {
+                                    try await viewModel.addDueDate(task: task, dueDate: selectedDate)
+                                    selectedTask = nil
+                                    showDueDatePicker = false
+                                    selectedDate = Date()
+                                    try? await viewModel.fetchTasks()
+                                } catch {
+                                    print("Failed to update due date: \(error)")
                                 }
                             }
-                            .padding()
-                            .cornerRadius(10)
                         }
                         .padding()
+                        .cornerRadius(10)
                     }
                     .padding()
                 }
-                .onAppear {
-                    Task {
-                        do {
-                            try await viewModel.loadCurrentUser()
-                        } catch {
-                            print("Failed to load user: \(error)")
-                        }
+                .padding()
+            }
+            .onAppear {
+                Task {
+                    do {
+                        try await viewModel.loadCurrentUser()
+                    } catch {
+                        print("Failed to load user or timers: \(error.localizedDescription)")
                     }
                 }
-                .navigationTitle("Tasks")
             }
-            .tabItem {
-                Image(systemName: "checklist")
-                Text("Tasks")
-            }
-            .padding()
-
-
-            NavigationView {
-                VStack {
-                    completedTaskList
-                }
-                .navigationTitle("Completed")
-            }
-            .tabItem {
-                Image(systemName: "checkmark.square")
-                Text("Completed")
-            }
-            .padding()
-
-            
-            NavigationView {
-                HabitView()
-            }
-            .tabItem {
-                Image(systemName: "star")
-                Text("Habits")
-            }
-            .padding()
-            
-            NavigationView {
-                TimerView()
-            }
-            .tabItem {
-                Image(systemName: "timer")
-                Text("Timer")
-            }
-            .padding()
-
-
-            NavigationView {
-                VStack {
-                    ProfileView(showSignInview: $showSignInView)
-                }
-                .navigationTitle("Profile")
-            }
-            .tabItem {
-                Label("Profile", systemImage: "person")
-            }
-            .padding()
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 
     // MARK: - Task Input Field
-    private var taskInputField: some View {
+    var taskInputField: some View {
         HStack {
             TextField("+ Add task to \"Tasks\"...", text: $taskTitle)
                 .padding()
@@ -155,7 +90,7 @@ struct TaskView: View {
 
     
     // MARK: - Task List
-    private var taskList: some View {
+    var taskList: some View {
         VStack {
             List {
                 taskSection(title: "Tasks", tasks: viewModel.tasks)
@@ -213,6 +148,7 @@ struct TaskView: View {
             }
         }
     }
+    
     // MARK: - Helper Methods
     private func addTask() {
         guard !taskTitle.isEmpty else { return }
@@ -251,5 +187,5 @@ struct TaskView: View {
 }
 
 #Preview {
-    RootView()
+    TaskView(showSignInView: .constant(false))
 }

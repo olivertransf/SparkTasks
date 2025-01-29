@@ -8,24 +8,11 @@ struct HabitView: View {
     @State private var selectedFrequency: Set<Int> = []
     @State private var errorMessage: String? = nil
     
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .none
-        return formatter
-    }
-    private func dayOfTheWeek(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: date)
-    }
-    
     var body: some View {
-        
         ZStack(alignment: .bottomTrailing) {
             VStack {
                 HStack {
-                    Text(dayOfTheWeek(for: date))
+                    Text(Utilities.dayOfTheWeek(for: date))
                         .font(.headline)
                         .foregroundColor(.primary)
         
@@ -49,14 +36,14 @@ struct HabitView: View {
                         .font(.title)
                         .foregroundColor(.gray)
                         .padding(.top, 90.0)
-                    Text(date, formatter: dateFormatter)
+                    Text(date, formatter: Utilities.dateFormatter)
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding()
                     Spacer()
                 } else {
                     List {
-                        Section("Habits for \(date, formatter: dateFormatter)") {
+                        Section("Habits for \(date, formatter: Utilities.dateFormatter)") {
                             ForEach(viewModel.habits(for: date)) { habit in
                                 HStack() {
                                     Button(action: {
