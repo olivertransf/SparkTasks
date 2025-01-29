@@ -12,6 +12,7 @@
 		4A14D1462D2E0A14007D9E20 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 4A14D1452D2E0A14007D9E20 /* GoogleSignIn */; };
 		4A14D1482D2E0A14007D9E20 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 4A14D1472D2E0A14007D9E20 /* GoogleSignInSwift */; };
 		4A5CE4F92D309DF200FD5D8F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 4A5CE4F82D309DF200FD5D8F /* FirebaseFirestore */; };
+		4A9FDECB2D49E44500EAD8AB /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = 4A9FDECA2D49E44500EAD8AB /* FSCalendar */; };
 		4AFA52822D3CA9BB00735BED /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AFA52812D3CA9BB00735BED /* WidgetKit.framework */; };
 		4AFA52842D3CA9BB00735BED /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AFA52832D3CA9BB00735BED /* SwiftUI.framework */; };
 /* End PBXBuildFile section */
@@ -79,6 +80,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4A14D1322D2CE8AE007D9E20 /* FirebaseAnalytics in Frameworks */,
+				4A9FDECB2D49E44500EAD8AB /* FSCalendar in Frameworks */,
 				4A14D1342D2CEC6C007D9E20 /* FirebaseAuth in Frameworks */,
 				4A14D1462D2E0A14007D9E20 /* GoogleSignIn in Frameworks */,
 				4A5CE4F92D309DF200FD5D8F /* FirebaseFirestore in Frameworks */,
@@ -168,6 +170,7 @@
 				4A14D1452D2E0A14007D9E20 /* GoogleSignIn */,
 				4A14D1472D2E0A14007D9E20 /* GoogleSignInSwift */,
 				4A5CE4F82D309DF200FD5D8F /* FirebaseFirestore */,
+				4A9FDECA2D49E44500EAD8AB /* FSCalendar */,
 			);
 			productName = Fire;
 			productReference = 4A14D1002D2CE2F9007D9E20 /* Fire.app */;
@@ -276,6 +279,7 @@
 			packageReferences = (
 				4A14D1302D2CE8AE007D9E20 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				4A14D1442D2E0A14007D9E20 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				4A9FDEC92D49E44500EAD8AB /* XCRemoteSwiftPackageReference "FSCalendar" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4A14D1012D2CE2F9007D9E20 /* Products */;
@@ -782,6 +786,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		4A9FDEC92D49E44500EAD8AB /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -809,6 +821,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4A14D1302D2CE8AE007D9E20 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		4A9FDECA2D49E44500EAD8AB /* FSCalendar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4A9FDEC92D49E44500EAD8AB /* XCRemoteSwiftPackageReference "FSCalendar" */;
+			productName = FSCalendar;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

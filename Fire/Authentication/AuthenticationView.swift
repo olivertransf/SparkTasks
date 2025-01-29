@@ -1,10 +1,3 @@
-//
-//  AuthenticationView.swift
-//  Fire
-//
-//  Created by Oliver Tran on 1/6/25.
-//
-
 import SwiftUI
 import GoogleSignIn
 import GoogleSignInSwift
@@ -16,74 +9,99 @@ struct AuthenticationView: View {
     @Binding var showSignInView: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
             Spacer()
             
-            Text("Welcome Back!")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
+            // Title
+            VStack(spacing: 8) {
+                Text("Welcome Back!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+                
+                Text("Sign in with one of the following methods.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
             
-            // Subtitle
-            Text("Sign in with your email and password to continue.")
-                .font(.body)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-            
-            NavigationLink {
-                SignInEmailView(showSignInView: $showSignInView)
-            } label: {
-                Text("Sign In With Email")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(height: 45)
+            // Authentication Buttons
+            VStack(spacing: 15) {
+                NavigationLink {
+                    SignInEmailView(showSignInView: $showSignInView)
+                } label: {
+                    authenticationButtonLabel(title: "Sign In With Email", color: Color(red: 66/255, green: 133/255, blue: 244/255), textColor: .white)
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            try await viewModel.signInGoogle()
+                            showSignInView = false
+                        } catch {
+                            print(error)
+                        }
+                    }
+                }) {
+                    HStack {
+                        Image("Google PNG Image")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+
+                        Text("Sign In With Google")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                    }
+                    .frame(height: 50)
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .background(Color(.systemGray2))
                     .cornerRadius(10)
-            }
-            
-            GoogleSignInButton(
-                viewModel: GoogleSignInButtonViewModel(
-                    scheme: .dark,
-                    style: .wide,
-                    state: .normal
-                )
-            ) {
-                Task {
-                    do {
-                        try await viewModel.signInGoogle()
-                        showSignInView = false
-                    } catch {
-                        print(error)
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            try await viewModel.signInApple()
+                            showSignInView = false
+                        } catch {
+                            print(error)
+                        }
                     }
+                }) {
+                    SignInWithAppleButtonViewRepresentable(
+                        type: .default,
+                        style: colorScheme == .dark ? .white : .black
+                    )
+                    .id(colorScheme)
+                    .frame(height: 50)
+                    .cornerRadius(10)
                 }
             }
-            .frame(height: 50)
-            .frame(maxWidth: .infinity)
-            .cornerRadius(0)
-            
-            Button(action: {
-                Task {
-                    do {
-                        try await viewModel.signInApple()
-                        showSignInView = false
-                    } catch {
-                        print(error)
-                    }
-                }
-            }, label: {
-                SignInWithAppleButtonViewRepresentable(
-                    type: .default,
-                    style: .white
-                )
-                    .allowsHitTesting(false)
-            })
-            .frame(height: 45)
             
             Spacer()
         }
         .padding(.horizontal, 40)
+    }
+    
+    // Helper function for creating button labels
+    private func authenticationButtonLabel(title: String, color: Color, textColor: Color, image: String? = nil) -> some View {
+        HStack {
+            if let image = image {
+                Image(image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+            }
+            Text(title)
+                .font(.headline)
+                .foregroundColor(textColor)
+        }
+        .frame(height: 50)
+        .frame(maxWidth: .infinity)
+        .background(color)
+        .cornerRadius(10)
     }
 }
 

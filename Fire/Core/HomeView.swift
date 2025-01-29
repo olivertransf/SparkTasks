@@ -14,6 +14,7 @@ struct HomeView: View {
                         TaskView(showSignInView: $showSignInView)
 //                            .navigationTitle("Tasks")
                     }
+                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Tasks", systemImage: "checkmark.square")
                     }
@@ -22,6 +23,7 @@ struct HomeView: View {
                         HabitView()
 //                            .navigationTitle("Habits")
                     }
+                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Habits", systemImage: "star")
                     }
@@ -30,14 +32,24 @@ struct HomeView: View {
                         TimerView()
 //                            .navigationTitle("Timer")
                     }
+                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Timer", systemImage: "timer")
+                    }
+                    
+                    NavigationView {
+                        CalendarView()
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
+                    .tabItem {
+                        Label("Calendar", systemImage: "calendar")
                     }
                     
                     NavigationView {
                         ProfileView(showSignInview: $showSignInView)
 //                            .navigationTitle("Profile")
                     }
+                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Profile", systemImage: "person")
                     }

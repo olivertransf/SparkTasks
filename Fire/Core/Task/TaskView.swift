@@ -5,14 +5,24 @@ struct TaskView: View {
     @StateObject private var viewModel = TaskViewModel()
     @State private var taskTitle: String = ""
     @State private var showDueDatePicker: Bool = false
+    @State private var showCompletedTasks: Bool = false
     @State private var selectedTask: Todo?
     @State private var selectedDate: Date = Date()
-
+    @State private var showEmptyTaskAlert: Bool = false
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 taskList
+                
+                Button("Show Completed Tasks") {
+                    showCompletedTasks.toggle()
+                }
+                .padding()
+                .foregroundColor(.blue)
+                
                 taskInputField
+        
             }
             .sheet(isPresented: $showDueDatePicker) {
                 VStack {
@@ -48,10 +58,19 @@ struct TaskView: View {
                         }
                         .padding()
                         .cornerRadius(10)
+                        .disabled(selectedDate == Date())
                     }
                     .padding()
                 }
                 .padding()
+            }
+            .sheet(isPresented: $showCompletedTasks) {
+                VStack {
+                    completedTaskList
+                    Button("Dismiss") {
+                        showCompletedTasks = false
+                    }
+                }
             }
             .onAppear {
                 Task {
@@ -62,6 +81,9 @@ struct TaskView: View {
                     }
                 }
             }
+        }
+        .alert(isPresented: $showEmptyTaskAlert) {
+            Alert(title: Text("Task Title Required"), message: Text("Please enter a task title before adding."), dismissButton: .default(Text("OK")))
         }
     }
 
@@ -88,7 +110,6 @@ struct TaskView: View {
         .padding([.leading, .bottom, .trailing])
     }
 
-    
     // MARK: - Task List
     var taskList: some View {
         VStack {
@@ -107,7 +128,7 @@ struct TaskView: View {
             .listStyle(InsetGroupedListStyle())
         }
     }
-    
+
     // MARK: - Completed Task List
     private var completedTaskList: some View {
         VStack {
@@ -148,10 +169,13 @@ struct TaskView: View {
             }
         }
     }
-    
+
     // MARK: - Helper Methods
     private func addTask() {
-        guard !taskTitle.isEmpty else { return }
+        guard !taskTitle.isEmpty else {
+            showEmptyTaskAlert = true
+            return
+        }
         Task {
             do {
                 try await viewModel.addTask(taskName: taskTitle)

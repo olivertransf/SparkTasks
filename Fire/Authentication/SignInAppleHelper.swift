@@ -27,11 +27,8 @@ struct SignInWithAppleButtonViewRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: ASAuthorizationAppleIDButton, context: Context) {
-        if style == .white {
-            uiView.overrideUserInterfaceStyle = .light
-        } else if style == .black {
-            uiView.overrideUserInterfaceStyle = .dark
-        }
+        let newStyle: UIUserInterfaceStyle = style == .white ? .light : .dark
+        uiView.overrideUserInterfaceStyle = newStyle
     }
 }
 

@@ -11,19 +11,15 @@ struct HabitView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack {
-                HStack {
-                    Text(Utilities.dayOfTheWeek(for: date))
-                        .font(.headline)
-                        .foregroundColor(.primary)
-        
+                VStack {
                     DatePicker(
                         "",
                         selection: $date,
                         displayedComponents: .date
                     )
-                    .datePickerStyle(.compact)
+                    .datePickerStyle(.graphical)
                     .labelsHidden()
-                    .padding(.vertical)
+                    .padding()
                     .background(
                         Color(UIColor { traitCollection in
                             traitCollection.userInterfaceStyle == .dark ? .black : .white })
@@ -131,7 +127,6 @@ struct HabitView: View {
                 }
             }
         }
-        .navigationTitle("Habits")
     }
 }
 
