@@ -7,12 +7,12 @@ struct HomeView: View {
 
     var body: some View {
         Group {
-            if let user = viewModel.user {
-                // Main TabView
+            if viewModel.user != nil {
                 TabView {
                     NavigationView {
                         TaskView(showSignInView: $showSignInView)
-//                            .navigationTitle("Tasks")
+                            .navigationTitle("Tasks")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
@@ -21,7 +21,8 @@ struct HomeView: View {
                     
                     NavigationView {
                         HabitView()
-//                            .navigationTitle("Habits")
+                            .navigationTitle("Habit")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
@@ -30,7 +31,8 @@ struct HomeView: View {
                     
                     NavigationView {
                         TimerView()
-//                            .navigationTitle("Timer")
+                            .navigationTitle("Timer")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
@@ -39,6 +41,8 @@ struct HomeView: View {
                     
                     NavigationView {
                         CalendarView()
+                            .navigationTitle("Calendar")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
@@ -46,8 +50,9 @@ struct HomeView: View {
                     }
                     
                     NavigationView {
-                        ProfileView(showSignInview: $showSignInView)
-//                            .navigationTitle("Profile")
+                        ProfileView(showSignInView: $showSignInView)
+                            .navigationTitle("Profile")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {

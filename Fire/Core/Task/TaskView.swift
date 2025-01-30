@@ -11,90 +11,54 @@ struct TaskView: View {
     @State private var showEmptyTaskAlert: Bool = false
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                taskList
-                
-                Button("Show Completed Tasks") {
+        VStack(spacing: 0) {
+            taskList
+            
+            Divider()
+            
+            taskInputField
+                .padding()
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
                     showCompletedTasks.toggle()
-                }
-                .padding()
-                .foregroundColor(.blue)
-                
-                taskInputField
-        
-            }
-            .sheet(isPresented: $showDueDatePicker) {
-                VStack {
-                    Text("Set Task Due Date")
-                        .font(.headline)
-                        .padding()
-                    DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(GraphicalDatePickerStyle())
-                        .padding()
-                    
-                    HStack {
-                        Button("Cancel") {
-                            showDueDatePicker = false
-                        }
-                        .foregroundColor(.red)
-                        .padding()
-                        
-                        Spacer()
-                        
-                        Button("Save") {
-                            guard let task = selectedTask else { return }
-                            Task {
-                                do {
-                                    try await viewModel.addDueDate(task: task, dueDate: selectedDate)
-                                    selectedTask = nil
-                                    showDueDatePicker = false
-                                    selectedDate = Date()
-                                    try? await viewModel.fetchTasks()
-                                } catch {
-                                    print("Failed to update due date: \(error)")
-                                }
-                            }
-                        }
-                        .padding()
-                        .cornerRadius(10)
-                        .disabled(selectedDate == Date())
-                    }
-                    .padding()
-                }
-                .padding()
-            }
-            .sheet(isPresented: $showCompletedTasks) {
-                VStack {
-                    completedTaskList
-                    Button("Dismiss") {
-                        showCompletedTasks = false
-                    }
+                }) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundColor(.blue)
                 }
             }
-            .onAppear {
-                Task {
-                    do {
-                        try await viewModel.loadCurrentUser()
-                    } catch {
-                        print("Failed to load user or timers: \(error.localizedDescription)")
-                    }
+        }
+        .sheet(isPresented: $showDueDatePicker) {
+            dueDatePickerSheet
+        }
+        .sheet(isPresented: $showCompletedTasks) {
+            completedTaskListSheet
+        }
+        .onAppear {
+            Task {
+                do {
+                    try await viewModel.loadCurrentUser()
+                } catch {
+                    print("Failed to load user or timers: \(error.localizedDescription)")
                 }
             }
         }
         .alert(isPresented: $showEmptyTaskAlert) {
-            Alert(title: Text("Task Title Required"), message: Text("Please enter a task title before adding."), dismissButton: .default(Text("OK")))
+            Alert(
+                title: Text("Task Title Required"),
+                message: Text("Please enter a task title before adding."),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 
     // MARK: - Task Input Field
     var taskInputField: some View {
         HStack {
-            TextField("+ Add task to \"Tasks\"...", text: $taskTitle)
-                .padding()
-                .background(Color(UIColor { traitCollection in
-                    traitCollection.userInterfaceStyle == .dark ? .systemGray6 : .white
-                }))
+            TextField("Add a new task...", text: $taskTitle)
+                .padding(12)
+                .background(Color(.systemGray6))
                 .cornerRadius(10)
                 .submitLabel(.done)
                 .onSubmit(addTask)
@@ -106,61 +70,91 @@ struct TaskView: View {
             }
             .padding(.leading, 8)
         }
-        .cornerRadius(12)
-        .padding([.leading, .bottom, .trailing])
     }
 
     // MARK: - Task List
     var taskList: some View {
-        VStack {
-            List {
-                taskSection(title: "Tasks", tasks: viewModel.tasks)
+        List {
+            taskSection(title: "", tasks: viewModel.tasks)
+        }
+        .listStyle(InsetGroupedListStyle())
+        .refreshable {
+            do {
+                try await viewModel.fetchTasks()
+                viewModel.sortTasks()
+            } catch {
+                print("Failed to refresh tasks: \(error)")
             }
-            .scrollContentBackground(.hidden)
-            .refreshable {
-                do {
-                    try await viewModel.fetchTasks()
-                    viewModel.sortTasks()
-                } catch {
-                    print("Failed to refresh tasks: \(error)")
-                }
-            }
-            .listStyle(InsetGroupedListStyle())
         }
     }
 
-    // MARK: - Completed Task List
-    private var completedTaskList: some View {
-        VStack {
+    // MARK: - Completed Task List Sheet
+    private var completedTaskListSheet: some View {
+        NavigationView {
             List {
-                taskSection(title: "Completed", tasks: viewModel.completedTasks)
+                taskSection(title: "Completed Tasks", tasks: viewModel.completedTasks)
             }
-            .refreshable {
-                do {
-                    try await viewModel.fetchTasks()
-                    viewModel.sortTasks()
-                } catch {
-                    print("Failed to refresh tasks: \(error)")
+            .navigationTitle("Completed")
+        }
+    }
+
+    // MARK: - Due Date Picker Sheet
+    private var dueDatePickerSheet: some View {
+        NavigationView {
+            VStack {
+                Spacer()
+                
+                DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding(.horizontal)
+                
+                HStack {
+                    Button("Cancel") {
+                        showDueDatePicker = false
+                    }
+                    .foregroundColor(.red)
+                    .padding()
+                    
+                    Spacer()
+                    
+                    Button("Save") {
+                        guard let task = selectedTask else { return }
+                        Task {
+                            do {
+                                try await viewModel.addDueDate(task: task, dueDate: selectedDate)
+                                selectedTask = nil
+                                showDueDatePicker = false
+                                selectedDate = Date()
+                                try? await viewModel.fetchTasks()
+                            } catch {
+                                print("Failed to update due date: \(error)")
+                            }
+                        }
+                    }
+                    .disabled(selectedDate == Date())
+                    .padding()
                 }
+                .padding()
+                
+                Spacer()
             }
-            .scrollContentBackground(.hidden)
-            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("Set Due Date")
         }
     }
 
     // MARK: - Task Section Builder
     private func taskSection(title: String, tasks: [Todo]) -> some View {
-        Section(title) {
+        Section(header: Text(title).font(.headline)) {
             ForEach(tasks) { task in
                 TaskRowView(
                     task: task,
                     onComplete: {
                         completeTask(task)
                     },
-                    onDelete: title == "Tasks" ? {
+                    onDelete: title == "" ? {
                         deleteTask(task)
                     } : nil,
-                    onDueDate: title == "Tasks" && !task.isComplete ? {
+                    onDueDate: title == "" && !task.isComplete ? {
                         selectedTask = task
                         selectedDate = task.dueDate ?? Date()
                         showDueDatePicker = true
