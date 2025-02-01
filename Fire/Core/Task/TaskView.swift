@@ -4,29 +4,51 @@ struct TaskView: View {
     @Binding var showSignInView: Bool
     @StateObject private var viewModel = TaskViewModel()
     @State private var taskTitle: String = ""
+    @State private var section: String = "Inbox"
+    @State private var sectionName: String = ""
     @State private var showDueDatePicker: Bool = false
     @State private var showCompletedTasks: Bool = false
+    @State private var showAddTask: Bool = false
     @State private var selectedTask: Todo?
     @State private var selectedDate: Date = Date()
     @State private var showEmptyTaskAlert: Bool = false
-    
+
     var body: some View {
-        VStack(spacing: 0) {
-            taskList
-            
-            Divider()
-            
-            taskInputField
-                .padding()
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    showCompletedTasks.toggle()
-                }) {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.blue)
+        ZStack {
+            VStack(spacing: 0) {
+                taskList()
+            }
+            VStack {
+                Spacer()
+                
+                HStack(spacing: 16) { // Added spacing for better balance
+                    
+                    // Picker with rounded background
+                    Picker("Section", selection: $section) {
+                        ForEach(viewModel.sections, id: \.self) { section in
+                            Text(section)
+                        }
+                    }
+                    .pickerStyle(.menu) // Menu picker for simplicity
+                    .padding(.horizontal)
+                    .frame(height: 40) // Ensures a consistent size
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray5))) // Light & dark mode friendly
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.5), lineWidth: 1)) // Subtle border
+                    .padding(.leading, 20) // Aligns with the button
+
+                    // Floating Add Task Button
+                    Button(action: { showAddTask = true }) {
+                        Image(systemName: "plus") // More common for adding tasks
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(16)
+                            .background(Circle().fill(Color.blue))
+                            .shadow(radius: 5)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.trailing, 20) // Aligns with the picker
                 }
+                .padding(.bottom, 20) // Prevents elements from touching the screen edge
             }
         }
         .sheet(isPresented: $showDueDatePicker) {
@@ -35,10 +57,15 @@ struct TaskView: View {
         .sheet(isPresented: $showCompletedTasks) {
             completedTaskListSheet
         }
+        .sheet(isPresented: $showAddTask) {
+            addTaskSheet
+                .presentationDetents([.fraction(0.7)])
+        }
         .onAppear {
             Task {
                 do {
                     try await viewModel.loadCurrentUser()
+                    try await viewModel.fetchSections()
                 } catch {
                     print("Failed to load user or timers: \(error.localizedDescription)")
                 }
@@ -53,34 +80,33 @@ struct TaskView: View {
         }
     }
 
-    // MARK: - Task Input Field
-    var taskInputField: some View {
-        HStack {
-            TextField("Add a new task...", text: $taskTitle)
-                .padding(12)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .submitLabel(.done)
-                .onSubmit(addTask)
-            
-            Button(action: addTask) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundColor(.blue)
-            }
-            .padding(.leading, 8)
-        }
-    }
-
     // MARK: - Task List
-    var taskList: some View {
-        List {
-            taskSection(title: "", tasks: viewModel.tasks)
+    func taskList() -> some View {
+        Group {
+            if viewModel.tasks.filter({ $0.section == section }).isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "tortoise.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.gray)
+                    
+                    Text("Click the button to add a task")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else {
+                List {
+                    taskSection(title: section, tasks: viewModel.tasks.filter { $0.section == section })
+                }
+                .listStyle(PlainListStyle())
+            }
         }
-        .listStyle(InsetGroupedListStyle())
         .refreshable {
             do {
                 try await viewModel.fetchTasks()
+                try await viewModel.fetchSections()
                 viewModel.sortTasks()
             } catch {
                 print("Failed to refresh tasks: \(error)")
@@ -88,11 +114,111 @@ struct TaskView: View {
         }
     }
 
+    private var addTaskSheet: some View {
+        VStack(spacing: 20) {
+            // New Section UI
+            VStack(alignment: .leading) {
+                Text("Add New Section")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 5)
+
+                HStack {
+                    TextField("New section name...", text: $sectionName)
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(10)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary, lineWidth: 1))
+
+                    Button(action: {
+                        guard !sectionName.isEmpty else { return }
+                        Task {
+                            do {
+                                try await viewModel.addNewSection(sectionName: sectionName)
+                                sectionName = "" // Clear input after adding
+                            } catch {
+                                print("Error adding new section: \(error.localizedDescription)")
+                            }
+                        }
+                    }) {
+                        Text("Add")
+                            .foregroundColor(.blue)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.leading)
+                }
+            }
+
+            Text("Add New Task")
+                .font(.headline)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 5)
+
+            // Task Title Field
+            TextField("Enter task title...", text: $taskTitle)
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(10)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary, lineWidth: 1))
+                .font(.body)
+                .foregroundColor(.primary)
+                .submitLabel(.done)
+                .onSubmit(addTask)
+
+            // Section Picker
+            HStack {
+                Text("Select Section")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                Picker("Section", selection: $section) {
+                    ForEach(viewModel.sections, id: \.self) { section in
+                        Text(section)
+                            .padding(.vertical, 10)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+            }
+            .padding(.horizontal)
+
+            // Action Buttons
+            HStack {
+                Button("Cancel") {
+                    taskTitle = ""
+                    showAddTask = false
+                }
+                .foregroundColor(.red)
+                .font(.headline)
+                .padding()
+
+                Spacer()
+
+                Button(action: { addTask() }) {
+                    Text("Add Task")
+                        .fontWeight(.semibold)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .padding()
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(radius: 5)
+        )
+        .padding()
+    }
+
     // MARK: - Completed Task List Sheet
     private var completedTaskListSheet: some View {
         NavigationView {
             List {
-                taskSection(title: "Completed Tasks", tasks: viewModel.completedTasks)
+                taskSection(title: "Completed", tasks: viewModel.completedTasks)
             }
             .navigationTitle("Completed")
         }
@@ -103,20 +229,20 @@ struct TaskView: View {
         NavigationView {
             VStack {
                 Spacer()
-                
+
                 DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding(.horizontal)
-                
+
                 HStack {
                     Button("Cancel") {
                         showDueDatePicker = false
                     }
                     .foregroundColor(.red)
                     .padding()
-                    
+
                     Spacer()
-                    
+
                     Button("Save") {
                         guard let task = selectedTask else { return }
                         Task {
@@ -135,7 +261,7 @@ struct TaskView: View {
                     .padding()
                 }
                 .padding()
-                
+
                 Spacer()
             }
             .navigationTitle("Set Due Date")
@@ -151,10 +277,10 @@ struct TaskView: View {
                     onComplete: {
                         completeTask(task)
                     },
-                    onDelete: title == "" ? {
+                    onDelete: title != "Completed" ? {
                         deleteTask(task)
                     } : nil,
-                    onDueDate: title == "" && !task.isComplete ? {
+                    onDueDate: title != "Completed" && !task.isComplete ? {
                         selectedTask = task
                         selectedDate = task.dueDate ?? Date()
                         showDueDatePicker = true
@@ -172,7 +298,7 @@ struct TaskView: View {
         }
         Task {
             do {
-                try await viewModel.addTask(taskName: taskTitle)
+                try await viewModel.addTask(taskName: taskTitle, section: section)
                 taskTitle = ""
                 viewModel.sortTasks()
             } catch {

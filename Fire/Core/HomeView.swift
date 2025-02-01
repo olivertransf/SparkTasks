@@ -4,7 +4,8 @@ struct HomeView: View {
     
     @Binding var showSignInView: Bool
     @StateObject private var viewModel = TaskViewModel()
-
+    @State private var isUserLoadingTimedOut = false
+    
     var body: some View {
         Group {
             if viewModel.user != nil {
@@ -14,27 +15,24 @@ struct HomeView: View {
                             .navigationTitle("Tasks")
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Tasks", systemImage: "checkmark.square")
                     }
                     
                     NavigationView {
                         HabitView()
-                            .navigationTitle("Habit")
+                            .navigationTitle("Habits")
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Habits", systemImage: "star")
                     }
                     
                     NavigationView {
                         TimerView()
-                            .navigationTitle("Timer")
+                            .navigationTitle("Timers")
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Timer", systemImage: "timer")
                     }
@@ -44,7 +42,6 @@ struct HomeView: View {
                             .navigationTitle("Calendar")
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Calendar", systemImage: "calendar")
                     }
@@ -54,11 +51,11 @@ struct HomeView: View {
                             .navigationTitle("Profile")
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationViewStyle(StackNavigationViewStyle())
                     .tabItem {
                         Label("Profile", systemImage: "person")
                     }
                 }
+                .navigationViewStyle(StackNavigationViewStyle())
             } else {
                 VStack {
                     Spacer()
@@ -73,6 +70,9 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(.systemGroupedBackground))
+                .onAppear {
+                    startUserLoadingTimeout()
+                }
             }
         }
         .onAppear {
@@ -84,10 +84,20 @@ struct HomeView: View {
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    // MARK: - Timeout Logic
+    private func startUserLoadingTimeout() {
+        // Timeout after 10 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            if viewModel.user == nil && !isUserLoadingTimedOut {
+                isUserLoadingTimedOut = true
+                showSignInView = true
+            }
+        }
     }
 }
 
 #Preview {
-    RootView()
+    HomeView(showSignInView: .constant(false))
 }

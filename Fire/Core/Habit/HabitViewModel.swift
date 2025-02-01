@@ -56,6 +56,7 @@ final class HabitViewModel: ObservableObject {
         try await fetchHabits()
     }
     
+
     // MARK: - Add Habit
     func addHabit(habitName: String, interval: [Int] = [], description: String? = nil) async throws {
         guard let collection = collection else { return }

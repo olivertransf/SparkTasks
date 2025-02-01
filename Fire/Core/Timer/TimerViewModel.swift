@@ -39,6 +39,23 @@ final class TimerViewModel: ObservableObject {
         return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
     }
     
+    func deleteTimer(_ timer: TimerEntry) async throws {
+        guard let collection = collection else {
+            throw NSError(domain: "TimerViewModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "User collection not loaded."])
+        }
+
+        // Find the corresponding document in Firestore and delete it
+        let snapshot = try await collection.getDocuments()
+        if let document = snapshot.documents.first(where: { $0.data()["startTime"] as? TimeInterval == timer.startTime }) {
+            try await document.reference.delete()
+        }
+
+        // Update local timers list
+        DispatchQueue.main.async {
+            self.previousTimers.removeAll { $0 == timer }
+        }
+    }
+    
     func loadCurrentUser() async throws {
         let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
         self.user = try await UserManager.shared.getUser(userId: authDataResult.uid)

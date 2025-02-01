@@ -1,34 +1,24 @@
 import SwiftUI
 
 struct HabitView: View {
+
     @StateObject private var viewModel = HabitViewModel()
     @State private var date = Date()
     @State private var habitTitle: String = ""
     @State private var showAddHabitView: Bool = false
     @State private var selectedFrequency: Set<Int> = []
+    @Environment(\.colorScheme) var colorScheme
     @State private var errorMessage: String? = nil
     @State private var showErrorAlert: Bool = false
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
-                // Date Picker Section
-                VStack {
-                    DatePicker(
-                        "",
-                        selection: $date,
-                        displayedComponents: .date
-                    )
-                    .datePickerStyle(.graphical)
-                    .labelsHidden()
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(.systemBackground))
-                    )
+                // FSCalendar Section
+                FSCalendarView(selectedDate: $date, events: [], colorScheme: colorScheme)
+                    .frame(height: 350)
                     .padding(.horizontal)
                     .padding(.top, 10)
-                }
                 
                 // Habits Section
                 if viewModel.habits(for: date).isEmpty {
@@ -55,18 +45,24 @@ struct HabitView: View {
                                     .foregroundColor(.primary)
                                     .padding(.vertical, 8)) {
                             ForEach(viewModel.habits(for: date)) { habit in
-                                HabitRowView(habit: habit, date: date) {
-                                    Task {
-                                        try? await viewModel.completeHabit(habit, date)
+                                HabitRowView(
+                                    habit: habit,
+                                    date: date,
+                                    onComplete: {
+                                        Task {
+                                            try? await viewModel.completeHabit(habit, date)
+                                        }
+                                    },
+                                    onDelete: {
+                                        Task {
+                                            try await viewModel.deleteHabit(habit)
+                                        }
                                     }
-                                }
-                                .background(Color(.systemBackground))
-                                .cornerRadius(10)
+                                )
                                 .transition(.opacity)
                             }
                         }
                     }
-                    .background(Color(.systemGray6))
                     .listStyle(InsetGroupedListStyle())
                     .scrollContentBackground(.hidden)
                     .refreshable {
@@ -151,6 +147,7 @@ struct HabitRowView: View {
     let habit: Habit
     let date: Date
     let onComplete: () -> Void
+    let onDelete: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -175,14 +172,17 @@ struct HabitRowView: View {
             }
             
             Spacer()
+            
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .foregroundColor(.red)
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .accessibilityLabel("Delete task")
+            
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .contentShape(Rectangle())
     }
-}
-
-// MARK: - Preview
-#Preview {
-    HabitView()
 }

@@ -102,7 +102,7 @@ struct TimerView: View {
                                     }
                                 }
                                 .foregroundColor(viewModel.selectedTimers.contains(timer) ? .green : .blue)
-                            
+
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Time Elapsed: \(viewModel.formatTime(from: timer.elapsedTime))")
                                     .font(.body)
@@ -122,6 +122,22 @@ struct TimerView: View {
                                     .foregroundColor(.secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Delete Button
+                            Button(action: {
+                                Task {
+                                    do {
+                                        try await viewModel.deleteTimer(timer)
+                                    } catch {
+                                        print("Failed to delete timer: \(error.localizedDescription)")
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .padding(8)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }

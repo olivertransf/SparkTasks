@@ -13,7 +13,6 @@ struct CalendarView: View {
     var body: some View {
         VStack(spacing: 0) {
             FSCalendarView(selectedDate: $selectedDate, events: calendarData.events, colorScheme: colorScheme)
-                .frame(height: 300)
             
             List(calendarData.events.filter { event in
                 Calendar.current.isDate(event.date, inSameDayAs: selectedDate)

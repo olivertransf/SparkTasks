@@ -15,6 +15,7 @@ struct Todo: Codable, Identifiable {
     let isComplete: Bool
     let dueDate: Date?
     let dateCompleted: Date?
+    let section: String?  // New property
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -23,6 +24,7 @@ struct Todo: Codable, Identifiable {
         case isComplete = "is_complete"
         case dueDate = "due_date"
         case dateCompleted = "date_completed"
+        case section
     }
 
     init(id: String = UUID().uuidString,
@@ -30,13 +32,15 @@ struct Todo: Codable, Identifiable {
          description: String? = nil,
          isComplete: Bool = false,
          dueDate: Date? = nil,
-         dateCompleted: Date? = nil) {
+         dateCompleted: Date? = nil,
+         section: String? = nil) { // New initializer parameter
         self.id = id
         self.title = title
         self.description = description
         self.isComplete = isComplete
         self.dueDate = dueDate
         self.dateCompleted = dateCompleted
+        self.section = section
     }
 
     init(from decoder: any Decoder) throws {
@@ -47,6 +51,7 @@ struct Todo: Codable, Identifiable {
         self.isComplete = try container.decode(Bool.self, forKey: .isComplete)
         self.dueDate = try container.decodeIfPresent(Date.self, forKey: .dueDate)
         self.dateCompleted = try container.decodeIfPresent(Date.self, forKey: .dateCompleted)
+        self.section = try container.decodeIfPresent(String.self, forKey: .section)
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -57,6 +62,7 @@ struct Todo: Codable, Identifiable {
         try container.encode(isComplete, forKey: .isComplete)
         try container.encodeIfPresent(dueDate.map { Timestamp(date: $0) }, forKey: .dueDate)
         try container.encodeIfPresent(dateCompleted.map { Timestamp(date: $0) }, forKey: .dateCompleted)
+        try container.encodeIfPresent(section, forKey: .section)
     }
 }
 
@@ -66,8 +72,10 @@ final class TaskViewModel: ObservableObject {
     private var collection: CollectionReference? = nil
     @Published var tasks: [Todo] = []
     @Published var completedTasks: [Todo] = []
+    @Published var sections: [String] = ["Inbox"]
+    @Published var section: String = "Inbox"
 
-    // MARK: - Fetch Tasks
+
     func fetchTasks() async throws {
         guard let collection = collection else { return }
 
@@ -76,10 +84,46 @@ final class TaskViewModel: ObservableObject {
 
         self.tasks = allTasks.filter { !$0.isComplete }
         self.completedTasks = allTasks.filter { $0.isComplete }
+
+        var fetchedSections = Array(Set(allTasks.compactMap { $0.section ?? "Inbox" }))
+
+        if !fetchedSections.contains("Inbox") {
+            fetchedSections.append("Inbox")
+        }
+
+        self.sections = fetchedSections.sorted { $0 == "Inbox" ? true : $1 != "Inbox" }
         
         sortTasks()
     }
+    
+    func addNewSection(sectionName: String) async throws {
+            let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+            let collection = Firestore.firestore().collection("users").document(authDataResult.uid).collection("sections")
+            
+            try await collection.document(sectionName).setData([
+                "name": sectionName
+            ])
+            
+            try await fetchSections()
+        }
 
+    func fetchSections() async throws {
+        let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
+        let collection = Firestore.firestore().collection("users").document(authDataResult.uid).collection("sections")
+
+        let snapshot = try await collection.getDocuments()
+        var fetchedSections = snapshot.documents.compactMap { document in
+            return document.data()["name"] as? String
+        }
+
+        if !fetchedSections.contains("Inbox") {
+            try await collection.document("Inbox").setData(["name": "Inbox"])
+            fetchedSections.append("Inbox")
+        }
+
+        self.sections = fetchedSections.sorted { $0 == "Inbox" ? true : $1 != "Inbox" }
+    }
+    
     // MARK: - Load User
     func loadCurrentUser() async throws {
         let authDataResult = try AuthenticationManager.shared.getAuthenticatedUser()
@@ -89,14 +133,26 @@ final class TaskViewModel: ObservableObject {
     }
 
     // MARK: - Add Task
-    func addTask(taskName: String, description: String? = nil, dueDate: Date? = nil) async throws {
+    func addTask(taskName: String, description: String? = nil, dueDate: Date? = nil, section: String? = nil) async throws {
         guard let collection = collection else { return }
 
-        let newTask = Todo(title: taskName, description: description, dueDate: dueDate)
+        let assignedSection = section ?? "Inbox"
+
+        let sectionCollection = try Firestore.firestore().collection("users").document(AuthenticationManager.shared.getAuthenticatedUser().uid).collection("sections")
+        let sectionSnapshot = try await sectionCollection.document(assignedSection).getDocument()
+        
+        if !sectionSnapshot.exists {
+            try await sectionCollection.document(assignedSection).setData(["name": assignedSection])
+        }
+
+        let newTask = Todo(title: taskName, description: description, dueDate: dueDate, section: assignedSection)
         try await collection.document(newTask.id).setData(try Firestore.Encoder().encode(newTask))
 
-        // Append locally to avoid refetching
         tasks.append(newTask)
+
+        if !sections.contains("Inbox") {
+            sections.append("Inbox")
+        }
     }
 
     // MARK: - Delete Task
@@ -104,7 +160,6 @@ final class TaskViewModel: ObservableObject {
         guard let collection = collection else { return }
         try await collection.document(task.id).delete()
 
-        // Remove locally
         if task.isComplete {
             completedTasks.removeAll { $0.id == task.id }
         } else {
@@ -125,7 +180,6 @@ final class TaskViewModel: ObservableObject {
             Todo.CodingKeys.dateCompleted.rawValue: newDateCompleted as Any
         ])
 
-        // Move task between sections without refetching
         if updatedCompletionStatus {
             tasks.removeAll { $0.id == task.id }
             completedTasks.append(Todo(id: task.id, title: task.title, description: task.description, isComplete: true, dueDate: task.dueDate, dateCompleted: newDateCompleted))

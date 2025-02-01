@@ -99,15 +99,17 @@ struct ProfileView: View {
                         }
                     }
                 }
-                .listStyle(InsetGroupedListStyle())
+                .listStyle(PlainListStyle())
             }
         }
-        .task {
-            do {
-                try await viewModel.loadCurrentUser()
-                viewModel.loadAuthProviders()
-            } catch {
-                print("Failed to load user: \(error)")
+        .onAppear() {
+            Task {
+                do {
+                    try await viewModel.loadCurrentUser()
+                    viewModel.loadAuthProviders()
+                } catch {
+                    print("Failed to load user: \(error)")
+                }
             }
         }
     }
