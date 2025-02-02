@@ -206,7 +206,6 @@ struct TaskView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .disabled(networkMonitor.isOnline)
             }
             .padding()
         }
