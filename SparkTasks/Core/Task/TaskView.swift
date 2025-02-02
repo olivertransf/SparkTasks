@@ -137,7 +137,7 @@ struct TaskView: View {
                         Task {
                             do {
                                 try await viewModel.addNewSection(sectionName: sectionName)
-                                sectionName = "" // Clear input after adding
+                                sectionName = ""
                             } catch {
                                 print("Error adding new section: \(error.localizedDescription)")
                             }
