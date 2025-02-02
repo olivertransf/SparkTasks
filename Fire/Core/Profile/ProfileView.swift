@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @Binding var showSignInView: Bool
 
     var body: some View {
@@ -64,6 +65,7 @@ struct ProfileView: View {
                             Label("Log Out", systemImage: "arrow.right.circle.fill")
                                 .foregroundColor(.blue)
                         }
+                        .disabled(!networkMonitor.isOnline)
                     }
                     
                     if viewModel.authProviders.contains(.email) {
@@ -97,6 +99,7 @@ struct ProfileView: View {
                             Label("Delete Account", systemImage: "trash.fill")
                                 .foregroundColor(.red)
                         }
+                        .disabled(!networkMonitor.isOnline)
                     }
                 }
                 .listStyle(PlainListStyle())

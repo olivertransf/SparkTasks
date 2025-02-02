@@ -11,6 +11,8 @@ struct HabitView: View {
     @State private var errorMessage: String? = nil
     @State private var showErrorAlert: Bool = false
     
+    @StateObject private var networkMonitor = NetworkMonitor.shared
+    
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
@@ -57,7 +59,9 @@ struct HabitView: View {
                                         Task {
                                             try await viewModel.deleteHabit(habit)
                                         }
-                                    }
+                                    },
+                                    online: networkMonitor.isOnline
+
                                 )
                                 .transition(.opacity)
                             }
@@ -92,6 +96,7 @@ struct HabitView: View {
             .padding(.trailing, 20)
             .padding(.bottom, 20)
             .buttonStyle(PlainButtonStyle())
+            .disabled(!networkMonitor.isOnline)
         }
         .sheet(isPresented: $showAddHabitView) {
             AddHabitView(
@@ -148,6 +153,7 @@ struct HabitRowView: View {
     let date: Date
     let onComplete: () -> Void
     let onDelete: () -> Void
+    let online: Bool
     
     var body: some View {
         HStack(spacing: 12) {
@@ -177,6 +183,7 @@ struct HabitRowView: View {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
             }
+            .disabled(!online)
             .buttonStyle(BorderlessButtonStyle())
             .accessibilityLabel("Delete task")
             

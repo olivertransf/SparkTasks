@@ -5,6 +5,7 @@ struct TaskRowView: View {
     let onComplete: () -> Void
     let onDelete: (() -> Void)?
     let onDueDate: (() -> Void)?
+    let online: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -80,6 +81,7 @@ struct TaskRowView: View {
                 .buttonStyle(BorderlessButtonStyle())
                 .padding(.trailing, 8)
                 .accessibilityLabel("Set due date")
+                .disabled(!online)
             }
 
             if let onDelete = onDelete {
@@ -89,6 +91,8 @@ struct TaskRowView: View {
                 }
                 .buttonStyle(BorderlessButtonStyle())
                 .accessibilityLabel("Delete task")
+                .disabled(!online)
+                
             }
         }
         .padding(.vertical, 4)

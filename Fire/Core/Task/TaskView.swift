@@ -12,7 +12,9 @@ struct TaskView: View {
     @State private var selectedTask: Todo?
     @State private var selectedDate: Date = Date()
     @State private var showEmptyTaskAlert: Bool = false
-
+    
+    @StateObject private var networkMonitor = NetworkMonitor.shared
+    
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
@@ -21,24 +23,22 @@ struct TaskView: View {
             VStack {
                 Spacer()
                 
-                HStack(spacing: 16) { // Added spacing for better balance
+                HStack(spacing: 16) {
                     
-                    // Picker with rounded background
                     Picker("Section", selection: $section) {
                         ForEach(viewModel.sections, id: \.self) { section in
                             Text(section)
                         }
                     }
-                    .pickerStyle(.menu) // Menu picker for simplicity
+                    .pickerStyle(.menu)
                     .padding(.horizontal)
-                    .frame(height: 40) // Ensures a consistent size
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray5))) // Light & dark mode friendly
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.5), lineWidth: 1)) // Subtle border
-                    .padding(.leading, 20) // Aligns with the button
-
-                    // Floating Add Task Button
+                    .frame(height: 40)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray5)))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.5), lineWidth: 1))
+                    .padding(.leading, 20)
+                    
                     Button(action: { showAddTask = true }) {
-                        Image(systemName: "plus") // More common for adding tasks
+                        Image(systemName: "plus")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
                             .padding(16)
@@ -46,9 +46,11 @@ struct TaskView: View {
                             .shadow(radius: 5)
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .padding(.trailing, 20) // Aligns with the picker
+                    .padding(.trailing, 20)
+                    .disabled(!networkMonitor.isOnline)
+
                 }
-                .padding(.bottom, 20) // Prevents elements from touching the screen edge
+                .padding(.bottom, 20)
             }
         }
         .sheet(isPresented: $showDueDatePicker) {
@@ -79,7 +81,7 @@ struct TaskView: View {
             )
         }
     }
-
+    
     // MARK: - Task List
     func taskList() -> some View {
         Group {
@@ -113,7 +115,7 @@ struct TaskView: View {
             }
         }
     }
-
+    
     private var addTaskSheet: some View {
         VStack(spacing: 20) {
             // New Section UI
@@ -122,14 +124,14 @@ struct TaskView: View {
                     .font(.headline)
                     .foregroundColor(.secondary)
                     .padding(.bottom, 5)
-
+                
                 HStack {
                     TextField("New section name...", text: $sectionName)
                         .padding()
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary, lineWidth: 1))
-
+                    
                     Button(action: {
                         guard !sectionName.isEmpty else { return }
                         Task {
@@ -148,23 +150,25 @@ struct TaskView: View {
                     .padding(.leading)
                 }
             }
-
-            Text("Add New Task")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .padding(.bottom, 5)
-
-            // Task Title Field
-            TextField("Enter task title...", text: $taskTitle)
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(10)
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary, lineWidth: 1))
-                .font(.body)
-                .foregroundColor(.primary)
-                .submitLabel(.done)
-                .onSubmit(addTask)
-
+            
+            VStack(alignment: .leading) {
+                Text("Add New Task")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 5)
+                
+                // Task Title Field
+                TextField("Enter task title...", text: $taskTitle)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary, lineWidth: 1))
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .submitLabel(.done)
+                    .onSubmit(addTask)
+            }
+            
             // Section Picker
             HStack {
                 Text("Select Section")
@@ -180,7 +184,7 @@ struct TaskView: View {
                 .pickerStyle(MenuPickerStyle())
             }
             .padding(.horizontal)
-
+            
             // Action Buttons
             HStack {
                 Button("Cancel") {
@@ -190,9 +194,9 @@ struct TaskView: View {
                 .foregroundColor(.red)
                 .font(.headline)
                 .padding()
-
+                
                 Spacer()
-
+                
                 Button(action: { addTask() }) {
                     Text("Add Task")
                         .fontWeight(.semibold)
@@ -202,6 +206,7 @@ struct TaskView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                .disabled(networkMonitor.isOnline)
             }
             .padding()
         }
@@ -213,7 +218,7 @@ struct TaskView: View {
         )
         .padding()
     }
-
+    
     // MARK: - Completed Task List Sheet
     private var completedTaskListSheet: some View {
         NavigationView {
@@ -223,26 +228,26 @@ struct TaskView: View {
             .navigationTitle("Completed")
         }
     }
-
+    
     // MARK: - Due Date Picker Sheet
     private var dueDatePickerSheet: some View {
         NavigationView {
             VStack {
                 Spacer()
-
+                
                 DatePicker("Select Due Date", selection: $selectedDate, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding(.horizontal)
-
+                
                 HStack {
                     Button("Cancel") {
                         showDueDatePicker = false
                     }
                     .foregroundColor(.red)
                     .padding()
-
+                    
                     Spacer()
-
+                    
                     Button("Save") {
                         guard let task = selectedTask else { return }
                         Task {
@@ -261,13 +266,13 @@ struct TaskView: View {
                     .padding()
                 }
                 .padding()
-
+                
                 Spacer()
             }
             .navigationTitle("Set Due Date")
         }
     }
-
+    
     // MARK: - Task Section Builder
     private func taskSection(title: String, tasks: [Todo]) -> some View {
         Section(header: Text(title).font(.headline)) {
@@ -284,12 +289,13 @@ struct TaskView: View {
                         selectedTask = task
                         selectedDate = task.dueDate ?? Date()
                         showDueDatePicker = true
-                    } : nil
+                    } : nil,
+                    online: networkMonitor.isOnline
                 )
             }
         }
     }
-
+    
     // MARK: - Helper Methods
     private func addTask() {
         guard !taskTitle.isEmpty else {
@@ -306,7 +312,7 @@ struct TaskView: View {
             }
         }
     }
-
+    
     private func completeTask(_ task: Todo) {
         Task {
             do {
@@ -317,7 +323,7 @@ struct TaskView: View {
             }
         }
     }
-
+    
     private func deleteTask(_ task: Todo) {
         Task {
             do {

@@ -15,7 +15,7 @@ struct Todo: Codable, Identifiable {
     let isComplete: Bool
     let dueDate: Date?
     let dateCompleted: Date?
-    let section: String?  // New property
+    let section: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -33,7 +33,7 @@ struct Todo: Codable, Identifiable {
          isComplete: Bool = false,
          dueDate: Date? = nil,
          dateCompleted: Date? = nil,
-         section: String? = nil) { // New initializer parameter
+         section: String? = nil) {
         self.id = id
         self.title = title
         self.description = description
@@ -68,13 +68,14 @@ struct Todo: Codable, Identifiable {
 
 @MainActor
 final class TaskViewModel: ObservableObject {
+    
     @Published private(set) var user: DBUser? = nil
     private var collection: CollectionReference? = nil
     @Published var tasks: [Todo] = []
     @Published var completedTasks: [Todo] = []
     @Published var sections: [String] = ["Inbox"]
     @Published var section: String = "Inbox"
-
+    
 
     func fetchTasks() async throws {
         guard let collection = collection else { return }

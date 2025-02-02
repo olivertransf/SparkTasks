@@ -3,6 +3,7 @@ import SwiftUI
 struct TimerView: View {
     
     @StateObject private var viewModel = TimerViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         VStack(spacing: 20) {
@@ -41,6 +42,7 @@ struct TimerView: View {
                         .padding(.horizontal)
                         .font(.headline)
                 }
+                .disabled(!networkMonitor.isOnline)
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isRunning)
 

@@ -1,11 +1,31 @@
 import SwiftUI
+import Network
+
+class NetworkMonitor: ObservableObject {
+    
+    static let shared = NetworkMonitor()
+    
+    @Published var isOnline: Bool = true
+    private let monitor = NWPathMonitor()
+    private let queue = DispatchQueue.global(qos: .background)
+
+    private init() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            DispatchQueue.main.async {
+                self?.isOnline = (path.status == .satisfied)
+            }
+        }
+        monitor.start(queue: queue)
+    }
+}
 
 struct HomeView: View {
     
     @Binding var showSignInView: Bool
     @StateObject private var viewModel = TaskViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var isUserLoadingTimedOut = false
-    
+
     var body: some View {
         Group {
             if viewModel.user != nil {
@@ -56,6 +76,7 @@ struct HomeView: View {
                     }
                 }
                 .navigationViewStyle(StackNavigationViewStyle())
+                .overlay(networkMonitor.isOnline ? nil : offlineBanner)
             } else {
                 VStack {
                     Spacer()
@@ -88,13 +109,34 @@ struct HomeView: View {
     
     // MARK: - Timeout Logic
     private func startUserLoadingTimeout() {
-        // Timeout after 10 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             if viewModel.user == nil && !isUserLoadingTimedOut {
                 isUserLoadingTimedOut = true
                 showSignInView = true
             }
         }
+    }
+
+    // MARK: - Offline Banner
+    private var offlineBanner: some View {
+        VStack {
+            HStack {
+                Text("You're offline")
+                    .font(.footnote)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.red.opacity(0.8))
+                    .cornerRadius(10)
+                    .padding(.bottom, 10)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .transition(.opacity)
+        .animation(.easeInOut, value: networkMonitor.isOnline)
     }
 }
 
