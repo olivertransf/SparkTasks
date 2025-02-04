@@ -1,6 +1,5 @@
 //
 //  SignInEmailViewModel.swift
-//  Fire
 //
 //  Created by Oliver Tran on 1/9/25.
 //

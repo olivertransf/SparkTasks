@@ -1,7 +1,6 @@
 
 //
 //  SignInApple.swift
-//  Fire
 //
 //  Created by Oliver Tran on 1/27/25.
 //

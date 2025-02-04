@@ -6,6 +6,7 @@ struct TaskRowView: View {
     let onDelete: (() -> Void)?
     let onDueDate: (() -> Void)?
     let online: Bool
+    @State private var showActionSheet: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -22,10 +23,16 @@ struct TaskRowView: View {
             .accessibilityLabel(task.isComplete ? "Mark as incomplete" : "Mark as complete")
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(task.title)
-                    .fontWeight(task.isComplete ? .light : .regular)
-                    .strikethrough(task.isComplete)
-                    .foregroundColor(task.isComplete ? .gray : .primary)
+                Button(action: {
+                    showActionSheet = true
+                }) {
+                    Text(task.title)
+                        .fontWeight(task.isComplete ? .light : .regular)
+                        .strikethrough(task.isComplete)
+                        .foregroundColor(task.isComplete ? .gray : .primary)
+                        .multilineTextAlignment(.leading)
+                }
+                .buttonStyle(BorderlessButtonStyle())
 
                 if task.isComplete, let dateCompleted = task.dateCompleted {
                     HStack {
@@ -72,30 +79,18 @@ struct TaskRowView: View {
             .padding(.vertical, 3)
 
             Spacer()
-
-            if let onDueDate = onDueDate {
-                Button(action: onDueDate) {
-                    Image(systemName: "calendar")
-                        .foregroundColor(.green)
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                .padding(.trailing, 8)
-                .accessibilityLabel("Set due date")
-                .disabled(!online)
-            }
-
-            if let onDelete = onDelete {
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                .accessibilityLabel("Delete task")
-                .disabled(!online)
-                
-            }
         }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showActionSheet) {
+            TaskActionSheet(
+                task: task,
+                isPresented: $showActionSheet,
+                onDelete: onDelete,
+                onDueDate: onDueDate,
+                online: online
+            )
+                .presentationDetents([.fraction(0.4)])
+        }
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button(action: onComplete) {
                 Label("Complete", systemImage: task.isComplete ? "arrow.uturn.backward" : "checkmark")

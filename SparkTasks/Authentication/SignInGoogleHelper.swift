@@ -1,6 +1,5 @@
 //
 //  SignInGoogleHelper.swift
-//  Fire
 //
 //  Created by Oliver Tran on 1/7/25.
 //
