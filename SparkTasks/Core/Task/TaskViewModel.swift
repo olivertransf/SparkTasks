@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 struct Todo: Codable, Identifiable {
     let id: String
-    let title: String
+    var title: String
     let description: String?
     let isComplete: Bool
     let dueDate: Date?
@@ -95,6 +95,16 @@ final class TaskViewModel: ObservableObject {
         self.sections = fetchedSections.sorted { $0 == "Inbox" ? true : $1 != "Inbox" }
         
         sortTasks()
+    }
+    
+    func editTask(_ task: Todo, newTitle: String) async throws {
+        guard let collection = collection else { return }
+        
+        try await collection.document(task.id).updateData([
+            "title": newTitle  
+        ])
+        
+        try await fetchTasks()
     }
     
     func addNewSection(sectionName: String) async throws {

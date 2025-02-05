@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TaskRowView: View {
+    @EnvironmentObject var viewModel: TaskViewModel
     let task: Todo
     let onComplete: () -> Void
     let onDelete: (() -> Void)?
@@ -89,7 +90,7 @@ struct TaskRowView: View {
                 onDueDate: onDueDate,
                 online: online
             )
-                .presentationDetents([.fraction(0.4)])
+            .presentationDetents([.fraction(0.5)])
         }
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button(action: onComplete) {

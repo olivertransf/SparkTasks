@@ -143,5 +143,25 @@ final class HabitViewModel: ObservableObject {
     
     }
     
+    // MARK: - Edit Habit
+    func editHabit(_ habit: Habit, newTitle: String) async throws {
+        guard let collection = collection else { return }
+        
+        try await collection.document(habit.id).updateData([
+            "title": newTitle
+        ])
+        
+        try await fetchHabits()
+    }
+    
+    func editInterval(_ habit: Habit, newInterval: [Int]) async throws {
+        guard let collection = collection else { return }
+        
+        try await collection.document(habit.id).updateData([
+            "interval": newInterval
+        ])
+        
+        try await fetchHabits()
+    }
     
 }

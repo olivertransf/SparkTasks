@@ -12,7 +12,6 @@ struct TaskView: View {
     @State private var selectedTask: Todo?
     @State private var selectedDate: Date = Date()
     @State private var showEmptyTaskAlert: Bool = false
-    @State private var isEditing: Bool = false
     @StateObject private var networkMonitor = NetworkMonitor.shared
     
     var body: some View {
@@ -56,9 +55,6 @@ struct TaskView: View {
         .sheet(isPresented: $showDueDatePicker) {
             dueDatePickerSheet
         }
-        .sheet(isPresented: $isEditing) {
-            editTaskSheet
-        }
         .sheet(isPresented: $showCompletedTasks) {
             completedTaskListSheet
         }
@@ -83,16 +79,9 @@ struct TaskView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .environmentObject(viewModel)
     }
-    
-    private var editTaskSheet: some View {
-        NavigationView {
-            VStack {
-                Text("Edit Task")
-            }
-        }
-        .navigationTitle("Edit Task")
-    }
+
 
     // MARK: - Task List
     func taskList() -> some View {

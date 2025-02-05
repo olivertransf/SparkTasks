@@ -7,7 +7,7 @@ import SwiftUI
 
 struct AddHabitView: View {
     @Binding var habitTitle: String
-    @Binding var selectedFrequency: Set<Int>
+    @Binding var selectedFrequency: [Int]
     @Binding var showAddHabitView: Bool
     let onSave: () -> Void
     
@@ -37,9 +37,9 @@ struct AddHabitView: View {
                         let daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"]
                         Button(action: {
                             if selectedFrequency.contains(index) {
-                                selectedFrequency.remove(index)
+                                selectedFrequency.remove(at: index)
                             } else {
-                                selectedFrequency.insert(index)
+                                selectedFrequency.append(index)
                             }
                         }) {
                             Text(daysOfWeek[index])

@@ -2,11 +2,12 @@ import SwiftUI
 
 struct TaskActionSheet: View {
     @State private var editedTitle: String
-    let task: Todo
+    var task: Todo
     @Binding var isPresented: Bool
     let onDelete: (() -> Void)?
     let onDueDate: (() -> Void)?
     let online: Bool
+    @EnvironmentObject var viewModel: TaskViewModel
     
     init(task: Todo, isPresented: Binding<Bool>, onDelete: (() -> Void)?, onDueDate: (() -> Void)?, online: Bool) {
         self.task = task
@@ -21,8 +22,41 @@ struct TaskActionSheet: View {
         NavigationView {
             List {
                 Section(header: Text("Task Title")) {
-                    TextField("Task Title", text: $editedTitle)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    HStack {
+                        TextField("\(task.title)", text: $editedTitle)
+                            .onSubmit {
+                                if !editedTitle.isEmpty {
+                                    Task {
+                                        do {
+                                            try await viewModel.editTask(task, newTitle: editedTitle)
+                                            isPresented = false
+                                            editedTitle = ""
+                                        } catch {
+                                            print("Error updating task: \(error)")
+                                        }
+                                    }
+                                }
+                            }
+                        Button {
+                            if !editedTitle.isEmpty {
+                                Task {
+                                    do {
+                                        try await viewModel.editTask(task, newTitle: editedTitle)
+                                        isPresented = false
+                                        editedTitle = ""
+                                    } catch {
+                                        print("Error updating task: \(error)")
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text("Save")
+                                .foregroundColor(.blue)
+                                .fontWeight(.semibold)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+
                 }
                 
                 if let onDueDate = onDueDate {
@@ -41,12 +75,11 @@ struct TaskActionSheet: View {
                         onDelete()
                     }) {
                         Label("Delete Task", systemImage: "trash")
+                            .foregroundStyle(.red)
                     }
                     .disabled(!online)
                 }
             }
-            .navigationTitle(task.title)
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
