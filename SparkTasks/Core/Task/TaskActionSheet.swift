@@ -21,72 +21,77 @@ struct TaskActionSheet: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("Task Title")) {
-                    HStack {
-                        TextField("\(task.title)", text: $editedTitle)
+                Section(header: Text("Task Title")
+                            .font(.headline)) {
+                    VStack(spacing: 12) {
+                        TextField("Edit Task Title", text: $editedTitle)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .submitLabel(.done)
                             .onSubmit {
-                                if !editedTitle.isEmpty {
-                                    Task {
-                                        do {
-                                            try await viewModel.editTask(task, newTitle: editedTitle)
-                                            isPresented = false
-                                            editedTitle = ""
-                                        } catch {
-                                            print("Error updating task: \(error)")
-                                        }
-                                    }
-                                }
+                                Task { await saveTask() }
                             }
-                        Button {
-                            if !editedTitle.isEmpty {
-                                Task {
-                                    do {
-                                        try await viewModel.editTask(task, newTitle: editedTitle)
-                                        isPresented = false
-                                        editedTitle = ""
-                                    } catch {
-                                        print("Error updating task: \(error)")
-                                    }
-                                }
-                            }
-                        } label: {
+                        
+                        Button(action: {
+                            Task { await saveTask() }
+                        }) {
                             Text("Save")
-                                .foregroundColor(.blue)
                                 .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(online ? Color.blue : Color.gray)
+                                .cornerRadius(8)
+                                .foregroundColor(.white)
                         }
-                        .buttonStyle(.borderless)
+                        .disabled(!online || editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-
+                    .padding(.vertical, 8)
                 }
                 
                 if let onDueDate = onDueDate {
-                    Button(action: {
-                        isPresented = false
-                        onDueDate()
-                    }) {
-                        Label("Set Due Date", systemImage: "calendar")
+                    Section {
+                        Button(action: {
+                            isPresented = false
+                            onDueDate()
+                        }) {
+                            Label("Set Due Date", systemImage: "calendar")
+                        }
+                        .disabled(!online)
                     }
-                    .disabled(!online)
                 }
                 
                 if let onDelete = onDelete {
-                    Button(role: .destructive, action: {
-                        isPresented = false
-                        onDelete()
-                    }) {
-                        Label("Delete Task", systemImage: "trash")
-                            .foregroundStyle(.red)
+                    Section {
+                        Button(role: .destructive, action: {
+                            isPresented = false
+                            onDelete()
+                        }) {
+                            Label("Delete Task", systemImage: "trash")
+                        }
+                        .disabled(!online)
                     }
-                    .disabled(!online)
                 }
             }
+            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("Task Options")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        isPresented = false
-                    }
+                    Button("Done") { isPresented = false }
                 }
             }
+        }
+    }
+    
+    private func saveTask() async {
+        let trimmedTitle = editedTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else { return }
+        do {
+            try await viewModel.editTask(task, newTitle: trimmedTitle)
+            // Dismiss the action sheet after saving.
+            isPresented = false
+            editedTitle = ""
+        } catch {
+            // Handle error appropriately, e.g. log it or show an alert.
+            print("Error updating task: \(error)")
         }
     }
 } 

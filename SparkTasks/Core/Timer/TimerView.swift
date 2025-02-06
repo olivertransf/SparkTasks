@@ -4,11 +4,11 @@ struct TimerView: View {
     
     @StateObject private var viewModel = TimerViewModel()
     @StateObject private var networkMonitor = NetworkMonitor.shared
+    @State private var selectedTimerForEditing: TimerEntry? = nil
 
     var body: some View {
         VStack(spacing: 20) {
-            
-            // Description Section
+            // Description Input Section
             HStack {
                 if !viewModel.recentDescriptions.isEmpty {
                     Picker("Recent Descriptions", selection: $viewModel.description) {
@@ -19,42 +19,48 @@ struct TimerView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                 }
-
+                
                 TextField("Enter Description", text: $viewModel.description)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.horizontal)
                     .frame(maxWidth: .infinity)
             }
-
+            
             // Timer Display
             Text(viewModel.timeString)
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .font(.system(size: 40, weight: .bold, design: .default))
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(15)
-
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color(UIColor.secondarySystemBackground))
+                )
+                .padding(.horizontal)
+            
             // Timer Controls
             VStack(spacing: 10) {
                 Button(action: viewModel.start) {
                     Text("Start Timer")
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal)
                         .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                .disabled(!networkMonitor.isOnline)
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.isRunning)
-
+                .disabled(!networkMonitor.isOnline || viewModel.isRunning)
+                
                 Button(action: viewModel.pause) {
                     Text("Pause Timer")
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal)
                         .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                .buttonStyle(.bordered)
                 .disabled(!viewModel.isRunning)
-
+                
                 Button(action: {
                     Task {
                         do {
@@ -66,11 +72,13 @@ struct TimerView: View {
                     }
                 }) {
                     Text("Save & Reset")
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal)
                         .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                .buttonStyle(.borderedProminent)
                 .disabled(!viewModel.hasStarted)
             }
             .padding(.horizontal)
@@ -95,37 +103,37 @@ struct TimerView: View {
                 List {
                     ForEach(viewModel.filteredTimers, id: \.timestamp) { timer in
                         HStack {
-                            Image(systemName: viewModel.selectedTimers.contains(timer) ? "checkmark.circle.fill" : "circle")
-                                .onTapGesture {
-                                    if viewModel.selectedTimers.contains(timer) {
-                                        viewModel.selectedTimers.remove(timer)
-                                    } else {
-                                        viewModel.selectedTimers.insert(timer)
-                                    }
+                            // Checkmark button for selection.
+                            Button(action: {
+                                if viewModel.selectedTimers.contains(timer) {
+                                    viewModel.selectedTimers.remove(timer)
+                                } else {
+                                    viewModel.selectedTimers.insert(timer)
                                 }
-                                .foregroundColor(viewModel.selectedTimers.contains(timer) ? .green : .blue)
-
+                            }) {
+                                Image(systemName: viewModel.selectedTimers.contains(timer) ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(.blue)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Time Elapsed: \(viewModel.formatTime(from: timer.elapsedTime))")
                                     .font(.body)
-                                    .monospacedDigit()
-                                    .foregroundColor(.primary)
                                 
                                 Text("Description: \(timer.description)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .font(.body)
                                 
                                 Text("Start: \(viewModel.formatDate(from: timer.startTime))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-
+                                
                                 Text("End: \(viewModel.formatDate(from: timer.endTime))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-
-                            // Delete Button
+                            
+                            // Delete Button.
                             Button(action: {
                                 Task {
                                     do {
@@ -141,6 +149,9 @@ struct TimerView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+                        // Make the row tappable for editing.
+                        .contentShape(Rectangle())
+                        .onTapGesture { selectedTimerForEditing = timer }
                     }
                 }
                 .listStyle(PlainListStyle())
@@ -157,6 +168,19 @@ struct TimerView: View {
             .padding(.top)
         }
         .padding()
+        .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        // Present the edit sheet when a timer is selected.
+        .sheet(item: $selectedTimerForEditing) { timer in
+            TimerEditSheet(timerEntry: timer) { newDescription, newElapsedTime in
+                Task {
+                    do {
+                        try await viewModel.updateTimer(timer, newDescription: newDescription, newElapsedTime: newElapsedTime)
+                    } catch {
+                        print("Failed to update timer: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
         .onAppear {
             Task {
                 do {
@@ -171,4 +195,4 @@ struct TimerView: View {
 
 #Preview {
     TimerView()
-}
+} 

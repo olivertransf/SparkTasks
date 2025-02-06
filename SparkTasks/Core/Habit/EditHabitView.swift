@@ -1,63 +1,50 @@
 import SwiftUI
 
 struct EditHabitView: View {
-    @State private var editedTitle: String
-    @State private var editedFrequency: [Int]
-    
-    var habit: Habit
-    @Binding var isPresented: Bool
-    let online: Bool
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: HabitViewModel
     
-    init(habit: Habit, isPresented: Binding<Bool>, online: Bool) {
+    let habit: Habit
+    
+    @State private var habitTitle: String
+    @State private var selectedFrequency: [Int]
+    @State private var habitDescription: String
+    
+    init(habit: Habit) {
         self.habit = habit
-        self._isPresented = isPresented
-        self.online = online
-        _editedTitle = State(initialValue: habit.title)
-        _editedFrequency = State(initialValue: habit.interval)
+        _habitTitle = State(initialValue: habit.title)
+        _selectedFrequency = State(initialValue: habit.interval)
+        // If the habit description is nil, default to an empty string.
+        _habitDescription = State(initialValue: habit.description ?? "")
     }
     
     var body: some View {
         NavigationView {
-            List {
-                Section {
-                    HStack {
-                        TextField("\(habit.title)", text: $editedTitle)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .font(.body)
-                        
-                        Button {
-                            submitEdit()
-                        } label: {
-                            Text("Save")
-                                .foregroundColor(.blue)
-                                .fontWeight(.semibold)
-                        }
-                        .disabled(editedTitle.isEmpty)
-                    }
-                    .padding(.vertical, 8)
+            Form {
+                Section(header: Text("Habit Title").font(.headline)) {
+                    TextField("Enter habit title", text: $habitTitle)
+                        .font(.body)
                 }
                 
-                VStack {
-                    Text("Select Frequency")
-                        .font(.headline)
-                        .padding(.bottom)
-                    
-                    let daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"]
-                    
+                Section(header: Text("Habit Description").font(.headline)) {
+                    TextField("Enter description", text: $habitDescription)
+                        .font(.body)
+                }
+                
+                Section(header: Text("Select Frequency").font(.headline)) {
                     HStack(spacing: 10) {
+                        let daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"]
                         ForEach(0..<7, id: \.self) { index in
                             Button(action: {
                                 toggleDay(index)
-                                print("Toggled day \(index), new frequency: \(editedFrequency)")
                             }) {
                                 ZStack {
                                     Circle()
-                                        .fill(editedFrequency.contains(index) ? Color.blue : Color.clear)
+                                        .fill(selectedFrequency.contains(index) ? Color.blue : Color.clear)
                                     Circle()
                                         .stroke(Color.blue, lineWidth: 2)
                                     Text(daysOfWeek[index])
-                                        .foregroundColor(editedFrequency.contains(index) ? .white : .blue)
+                                        .foregroundColor(selectedFrequency.contains(index) ? .white : Color.blue)
                                 }
                                 .frame(width: 40, height: 40)
                             }
@@ -65,88 +52,68 @@ struct EditHabitView: View {
                             .contentShape(Circle())
                         }
                     }
-                    
-                    Button(action: saveFrequency) {
-                        Text("Add Interval")
-                            .bold()
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                            .shadow(radius: 3)
-                    }
-                }
-                .padding(.horizontal)
-                
-                Section {
-                    Button(role: .destructive) {
-                        Task {
-                            do {
-                                try await viewModel.deleteHabit(habit)
-                                isPresented = false
-                            } catch {
-                                print("Error deleting habit: \(error)")
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Label("Delete Habit", systemImage: "trash")
-                                .foregroundColor(.red)
-                            Spacer()
-                        }
-                    }
-                    .disabled(!online)
                 }
             }
             .navigationTitle("Edit Habit")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        isPresented = false
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            await saveHabitEdits()
+                        }
+                        dismiss()
                     }
                 }
-            }
-            .onAppear {
-                editedFrequency = habit.interval
-            }
-        }
-    }
-    
-    private func submitEdit() {
-        if !editedTitle.isEmpty {
-            Task {
-                do {
-                    try await viewModel.editHabit(habit, newTitle: editedTitle)
-                    isPresented = false
-                } catch {
-                    print("Error updating habit title: \(error)")
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
                 }
-            }
-        }
-    }
-    
-    private func saveFrequency() {
-        guard editedFrequency != habit.interval else { return }
-        Task {
-            do {
-                try await viewModel.editInterval(habit, newInterval: editedFrequency)
-                isPresented = false
-            } catch {
-                print("Error updating habit frequency: \(error)")
             }
         }
     }
     
     private func toggleDay(_ index: Int) {
-        withAnimation(.easeInOut) {
-            if let existingIndex = editedFrequency.firstIndex(of: index) {
-                editedFrequency.remove(at: existingIndex)
+        withAnimation {
+            if let pos = selectedFrequency.firstIndex(of: index) {
+                selectedFrequency.remove(at: pos)
             } else {
-                editedFrequency.append(index)
-                editedFrequency.sort()
+                selectedFrequency.append(index)
+                selectedFrequency.sort()
             }
         }
     }
+    
+    private func saveHabitEdits() async {
+        do {
+            // Update the title if it has changed.
+            if habitTitle != habit.title {
+                try await viewModel.editHabit(habit, newTitle: habitTitle)
+            }
+            // Update the frequency if it has changed.
+            if selectedFrequency != habit.interval {
+                try await viewModel.editInterval(habit, newInterval: selectedFrequency)
+            }
+            // If you want to update the description, add a corresponding method in your view model.
+            // For now, we assume that editing description is not supported in the view model.
+        } catch {
+            print("Error saving updates: \(error.localizedDescription)")
+        }
+    }
 }
+
+struct EditHabitView_Previews: PreviewProvider {
+    static var previews: some View {
+        let sampleHabit = Habit(
+            id: "test1",
+            title: "Test Habit",
+            interval: [1, 3, 5],
+            description: "A sample habit",
+            startDate: Date(),
+            completedDates: []
+        )
+        EditHabitView(habit: sampleHabit)
+            .environmentObject(HabitViewModel())
+    }
+} 

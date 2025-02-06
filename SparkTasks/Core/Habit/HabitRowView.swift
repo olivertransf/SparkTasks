@@ -13,10 +13,9 @@ struct HabitRowView: View {
         HStack(spacing: 12) {
             Button(action: onComplete) {
                 Image(systemName: habit.completedDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 24))
+                    .font(.system(size: 25))
                     .foregroundColor(habit.completedDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: date) }) ? .green : .blue)
-            }
-            .padding(.horizontal)
+            }            
             .buttonStyle(BorderlessButtonStyle())
             
             VStack(alignment: .leading, spacing: 4) {
@@ -26,8 +25,7 @@ struct HabitRowView: View {
                     .onTapGesture {
                         showEditSheet = true
                     }
-                
-                if let description = habit.description {
+                if let description = habit.description, !description.isEmpty {
                     Text(description)
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -37,15 +35,22 @@ struct HabitRowView: View {
             Spacer()
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 12)
         .contentShape(Rectangle())
         .sheet(isPresented: $showEditSheet) {
-            EditHabitView(
-                habit: habit,
-                isPresented: $showEditSheet,
-                online: online
-            )
-            .environmentObject(viewModel)
+            EditHabitView(habit: habit)
+                .environmentObject(viewModel)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button(action: onComplete) {
+                Label("Complete", systemImage: "checkmark")
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+            .tint(.red)
+            
         }
     }
 } 
